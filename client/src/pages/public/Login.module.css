@@ -1,0 +1,134 @@
+/* Định dạng nền tổng thể */
+.loginContainer {
+  background-color: #eee;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Card chứa form */
+.loginCard {
+  border-radius: 1rem;
+  width: 100%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Căn chỉnh cột */
+.rowLogin {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+.colLogin {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Định dạng phần gradient */
+.gradientSection {
+  background: linear-gradient(to right, #ff6f61, #ffcc00);
+  color: white;
+  padding: 40px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100%;
+  flex: 1;
+}
+
+/* Căn chỉnh nội dung trong form */
+.loginCardBody {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Định dạng input */
+/* Định dạng input */
+.formControl {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.formControl input {
+  width: 100%;
+  padding: 12px 10px; /* Tăng padding để input thoải mái hơn */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+  font-size: 16px;
+  background: white;
+}
+
+/* Định dạng label */
+.formLabel {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: gray;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  background: white;
+  padding: 0 5px;
+}
+
+/* Khi input được focus hoặc có nội dung, label sẽ di chuyển lên */
+.formControl input:focus + .formLabel,
+.formControl input:not(:placeholder-shown) + .formLabel {
+  top: 0px;
+  left: 10px;
+  font-size: 12px;
+  color: #ff6f61;
+  transform: translateY(-50%);
+}
+
+/* Khi input được focus */
+.formControl input:focus {
+  border-color: #ff6f61;
+}
+
+
+/* Nút chuyển đổi */
+.switchButton {
+  background: none;
+  border: none;
+  color: #ff6f61;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.switchButton:hover {
+  text-decoration: underline;
+}
+
+/* Nút đăng nhập & đăng ký */
+.loginButton {
+  background: linear-gradient(to right, #ff6f61, #ffcc00);
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 5px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.loginButton:hover {
+  opacity: 0.8;
+}

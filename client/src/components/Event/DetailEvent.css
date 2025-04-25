@@ -1,0 +1,43 @@
+.blog-item {
+    position: relative;
+    height: 250px;
+    border-radius: 10px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 15px;
+    color: white;
+  }
+  
+  .bi-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
+    background: rgba(255, 0, 0, 0.7);
+    border-radius: 5px;
+    color: white;
+  }
+  
+  .bi-text h5 {
+    margin: 0;
+  }
+  
+  .bi-text span {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  
+  .swiper-pagination-bullet {
+    background: white !important;
+  }
+  
+  .swiper-button-next,
+  .swiper-button-prev {
+    color: white !important;
+  }
+  
