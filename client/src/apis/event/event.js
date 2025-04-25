@@ -15,6 +15,13 @@ export const apiGetAllEvent=()=>axios({
     method:'get'
 })
 
+/**
+ * Sends a POST request to create a new event.
+ *
+ * @param {Object} item - The event data to be created, which includes properties such as title, description, date, location, and capacity.
+ * @returns {Promise} - A promise that resolves with the response of the request.
+ */
+
 export const apiCreateEvent = (item)=>axios({
     url:'/event',
     method:'post',

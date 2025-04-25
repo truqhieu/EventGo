@@ -1,0 +1,118 @@
+[{
+  "_id": {
+    "$oid": "6809ecabee180b9f2daba8f8"
+  },
+  "name": "Tran Trung hieu",
+  "email": "trunghieu2003hhh@gmail.com",
+  "password": "trunghieu",
+  "role": "User",
+  "deleted": 0,
+  "eventsAttended": [
+    {
+      "event": {
+        "$oid": "642a1b2c3d4e5f6789012350"
+      },
+      "status": "pending",
+      "_id": {
+        "$oid": "680a0cb8a14eb45292d7c73c"
+      },
+      "registeredAt": {
+        "$date": "2025-04-24T10:04:40.058Z"
+      },
+      "feedbacks": []
+    },
+    {
+      "event": {
+        "$oid": "642a1b2c3d4e5f6789012347"
+      },
+      "status": "pending",
+      "_id": {
+        "$oid": "680a0cd0a14eb45292d7c767"
+      },
+      "registeredAt": {
+        "$date": "2025-04-24T10:05:04.939Z"
+      },
+      "feedbacks": [
+        {
+          "comment": "gut job",
+          "createdAt": {
+            "$date": "2025-04-24T10:25:10.834Z"
+          },
+          "updatedAt": {
+            "$date": "2025-04-24T10:25:10.834Z"
+          },
+          "_id": {
+            "$oid": "680a1186a14eb45292d7c823"
+          }
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T07:47:55.205Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-25T07:54:26.752Z"
+  },
+  "__v": 2,
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA5ZWNhYmVlMTgwYjlmMmRhYmE4ZjgiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc0NTU2NzY2NiwiZXhwIjoxNzQ1ODI2ODY2fQ.AbGC-rJ6AKoclvL2Vu_manQiuscfwSX4u6fjoIm9N48"
+},
+{
+  "_id": {
+    "$oid": "680b3ae43b2d603cb6cbe2a5"
+  },
+  "name": "Pham Trung hieu",
+  "email": "hieu6903az@gmail.com",
+  "password": "hieuhieu",
+  "role": "Admin",
+  "deleted": 0,
+  "eventsAttended": [
+    {
+      "event": {
+        "$oid": "642a1b2c3d4e5f6789012350"
+      },
+      "status": "pending",
+      "_id": {
+        "$oid": "680a0cb8a14eb45292d7c73c"
+      },
+      "registeredAt": {
+        "$date": "2025-04-24T10:04:40.058Z"
+      },
+      "feedbacks": []
+    },
+    {
+      "event": {
+        "$oid": "642a1b2c3d4e5f6789012347"
+      },
+      "status": "pending",
+      "_id": {
+        "$oid": "680a0cd0a14eb45292d7c767"
+      },
+      "registeredAt": {
+        "$date": "2025-04-24T10:05:04.939Z"
+      },
+      "feedbacks": [
+        {
+          "comment": "gut job",
+          "createdAt": {
+            "$date": "2025-04-24T10:25:10.834Z"
+          },
+          "updatedAt": {
+            "$date": "2025-04-24T10:25:10.834Z"
+          },
+          "_id": {
+            "$oid": "680a1186a14eb45292d7c823"
+          }
+        }
+      ]
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-24T07:47:55.205Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-24T10:25:10.836Z"
+  },
+  "__v": 2,
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODA5ZWNhYmVlMTgwYjlmMmRhYmE4ZjgiLCJyb2xlIjoiVXNlciIsImlhdCI6MTc0NTQ4ODkwNSwiZXhwIjoxNzQ1NzQ4MTA1fQ.rg-U696PJDcYp1YWNfjp4IoFLTTMd_lFzV_Hbh9RHu4"
+}]

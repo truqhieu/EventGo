@@ -13,3 +13,11 @@ export const isTokenExpired = (accessToken) => {
     return true; // Nếu giải mã lỗi, xem như token hết hạn
   }
 };
+export const formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("vi-VN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};

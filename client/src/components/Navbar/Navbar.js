@@ -6,12 +6,11 @@ import "../../styletemplate/css/style.css";
 import "../../styletemplate/css/bootstrap.min.css";
 import "../../styletemplate/css/font-awesome.min.css";
 import { LuLogIn } from "../../ultils/icon";
-
 import { useState, useEffect } from "react";
 import { fetchDataSpeaker } from "../../reducer/speakerReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchCurrentData, fetCurrentData } from "../../reducer/authenReducer";
+import { fetchCurrentData } from "../../reducer/authenReducer";
 import { isTokenExpired } from "../../ultils/helper";
 import { apiRefreshToken } from "../../apis/authen/authentication";
 
@@ -21,17 +20,15 @@ const Navbar = () => {
   const authData = JSON.parse(localStorage.getItem("authData")) || {};
   const isLogged = authData?.isLogin || false;
   const accessToken = authData?.accessToken || "";
-  const { isLoading, error, dataSpeakerAll } = useSelector(
-    (state) => state.speakerList
-  );
-  const { user, errorUser, isLoadingUser } = useSelector(
-    (state) => state.authen
-  );
+  const { dataSpeakerAll } = useSelector((state) => state.speakerList);
+  const { user } = useSelector((state) => state.authen);
+
   useEffect(() => {
     if (isLogged && accessToken) {
       dispatch(fetchCurrentData());
     }
   }, [dispatch, isLogged, accessToken]);
+
   useEffect(() => {
     dispatch(fetchDataSpeaker());
   }, [dispatch]);
@@ -45,6 +42,8 @@ const Navbar = () => {
     const value = e.target.value;
     if (value === "logout") {
       handleLogout();
+    } else if (value === "profile") {
+      navigate("/profile");
     }
   };
 
@@ -53,20 +52,17 @@ const Navbar = () => {
       if (accessToken && isTokenExpired(accessToken)) {
         try {
           const result = await apiRefreshToken();
-
           if (!result?.data?.success) {
-            // Xử lý khi server trả về success: false
-            handleLogout()
+            handleLogout();
           }
         } catch (error) {
-          // Xử lý mọi lỗi từ API
-          handleLogout()
+          handleLogout();
         }
       }
     };
 
     if (accessToken) checkToken();
-  }, [dispatch, accessToken]);
+  }, [accessToken]);
 
   return (
     <div>
@@ -88,26 +84,25 @@ const Navbar = () => {
                   <a href="/">Home</a>
                 </li>
                 <li>
-                  <a href="#">About</a>
+                  <a href="/about">About</a>
                 </li>
                 <li>
                   <a href="/speaker">Speakers</a>
-                  <ul className="dropdown">
-                    {dataSpeakerAll?.map((item, index) => (
-                      <li key={index}>
-                        <a href="/speaker">{item?.name}</a>
-                      </li>
-                    ))}
-                  </ul>
+                  {dataSpeakerAll?.length > 0 && (
+                    <ul className="dropdown">
+                      {dataSpeakerAll.map((item, index) => (
+                        <li key={index}>
+                          <a href={`/speaker/${item._id}`}>{item.name}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
                 <li>
-                  <a href="#">Schedule</a>
+                  <a href="/event">Schedule</a>
                 </li>
                 <li>
-                  <a href="/event">Hot News</a>
-                </li>
-                <li>
-                  <a href="#">Contacts</a>
+                  <a href="/contact">Contacts</a>
                 </li>
               </ul>
             </nav>
@@ -117,7 +112,7 @@ const Navbar = () => {
                 onChange={handleSelectDropdownChange}
                 aria-label="User Menu"
               >
-                <option selected>Hello {user?.name}</option>
+                <option value="">Hello {user?.name}</option>
                 <option value="profile">Profile</option>
                 <option value="setting">Settings</option>
                 <option value="logout">Logout</option>
@@ -128,7 +123,6 @@ const Navbar = () => {
               </a>
             )}
           </div>
-
           <div id="mobile-menu-wrap" />
         </div>
       </header>

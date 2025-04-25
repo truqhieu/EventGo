@@ -214,14 +214,15 @@ const getCurrent = asyncHandler(async (req, res) => {
 const eventRegistration = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { eventId } = req.body;
-  
+
   const user = await User.findById(_id);
   if (!user) {
-    return res.status(200).json({
+    return res.status(404).json({
       success: false,
-      mess: "Can not found user",
+      mess: "User not found",
     });
   }
+
   const event = await Event.findById(eventId);
   if (!event) {
     return res.status(404).json({
@@ -230,24 +231,41 @@ const eventRegistration = asyncHandler(async (req, res) => {
     });
   }
 
+  // Kiểm tra nếu sự kiện đã đăng ký
   const eventRegisted = user.eventsAttended.find(
     (el) => el?.event.toString() === eventId
   );
-
   if (eventRegisted) {
-    throw new Error("You have registered for this event");
+    return res.status(400).json({
+      success: false,
+      mess: "You have already registered for this event",
+    });
   }
-  const html = `Xin chào ${user?.name} ,bạn đã hoàn tất quá trình đăng kí sự kiện ${event?.title},sự kiện sẽ diễn ra vào ngày ${new Date(event?.date).toLocaleString()}, hãy chú ý thời gian để tham gia.Chúc bạn một ngày vui vẻ`;
 
-  await sendEmail({
-    email:user?.email,
-    html:html,
-    subject:'Đăng kí sự kiện'
-  })
+  // Nếu sự kiện có tính phí, trả về thông tin QR thanh toán
+  if (event.isPaid) {
+    const qrCodeUrl = `https://example.com/payment?eventId=${eventId}&userId=${_id}`;
+    return res.status(200).json({
+      success: true,
+      mess: "This event requires payment. Please complete the payment to register.",
+      qrCodeUrl,
+      price: event.price,
+    });
+  }
+
+  // Đăng ký sự kiện miễn phí
   user.eventsAttended.push({ event: eventId });
   event.attendees.push(_id);
   await event.save();
   const userRegisted = await user.save();
+
+  // Gửi email thông báo
+  const html = `Xin chào ${user?.name}, bạn đã hoàn tất quá trình đăng ký sự kiện ${event?.title}.`;
+  await sendEmail({
+    email: user?.email,
+    html,
+    subject: "Đăng ký sự kiện thành công",
+  });
 
   return res.status(200).json({
     success: true,

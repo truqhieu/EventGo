@@ -69,6 +69,8 @@ var eventSchema = new mongoose.Schema(
     ],
     sponsors: [{ name: String, logoUrl: String }],
     speaker: [{ type: mongoose.Schema.Types.ObjectId, ref: "Speaker" }],
+    isPaid: { type: Boolean, default: false }, // Sự kiện có tính phí hay không
+    price: { type: Number, default: 0 }, // Giá vé (nếu có)
   },
   { timestamps: true }
 );

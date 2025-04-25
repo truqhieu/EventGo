@@ -1,0 +1,58 @@
+[{
+  "_id": {
+    "$oid": "642a1b2c3d4e5f6789012350"
+  },
+  "title": "Business Summit 2025",
+  "description": "Annual business summit gathering industry leaders.",
+  "date": {
+    "$date": "2025-06-10T09:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-06-11T17:00:00.000Z"
+  },
+  "location": "Hanoi International Convention Center",
+  "organizer": {
+    "$oid": "642a1b2c3d4e5f6789012310"
+  },
+  "organizerUnit": {
+    "name": "Business Leaders Association",
+    "address": "100 Ba Dinh, Hanoi",
+    "contactInfo": {
+      "phone": "0911222333",
+      "email": "contact@businessleaders.org"
+    }
+  },
+  "category": "Business",
+  "views": 50,
+  "capacity": 300,
+  "attendees": [
+    {
+      "$oid": "642a1b2c3d4e5f6789012399"
+    },
+    {
+      "$oid": "6809ecabee180b9f2daba8f8"
+    }
+  ],
+  "backgroundImage": "https://example.com/images/business-summit-bg.jpg",
+  "logoImage": "https://example.com/images/business-summit-logo.png",
+  "status": "Upcoming",
+  "feedback": [],
+  "sponsors": [
+    {
+      "name": "Enterprise Corp",
+      "logoUrl": "https://example.com/logos/enterprise.png"
+    }
+  ],
+  "speaker": [
+    {
+      "$oid": "642a1b2c3d4e5f6789012410"
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T08:00:00.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-24T10:04:40.066Z"
+  },
+  "__v": 1
+}]
