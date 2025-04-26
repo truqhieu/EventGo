@@ -2,7 +2,7 @@ import axios from "axios";
 import { apiRefreshToken } from "./apis/authen/authentication";
 
 const instance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL_SERVER,
+  baseURL: import.meta.env.VITE_APP_API_URL_SERVER,
   withCredentials: true, // Bật chế độ gửi cookie cùng với yêu cầu
 });
 

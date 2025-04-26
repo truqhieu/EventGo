@@ -5,6 +5,7 @@ import path from "./ultils/path";
 import { Speaker,Event, DetailEvent } from "./components";
 import FinalRegister from "./pages/guest/FinalRegister";
 import { Admin } from "./pages/private";
+import { Staff } from "./pages/private";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path={path.LOGIN} element={<Login />} />
           <Route path={path.FinalRegister} element={<FinalRegister/>}/>
           <Route path={path.Admin} element={<Admin />} />
+          <Route path={path.Staff} element={<Staff />} />
       </Routes>
     </div>
   );

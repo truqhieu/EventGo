@@ -8,9 +8,9 @@ const Login = () => {
   const [activeForm, setActiveForm] = useState("login");
   const navigate = useNavigate();
   const location = useLocation()
-  const detailEventId= location?.state?.eid || null
-  
-  
+  const detailEventId = location?.state?.eid || null
+
+
   const [formLogin, setFormLogin] = useState({
     email: "",
     password: "",
@@ -49,7 +49,7 @@ const Login = () => {
       if (response?.success) {
         swal("SUCCESS", "Login Successfully!!!", "success");
         if (response?.userData?.role === "User") {
-          detailEventId?navigate(`/detailevent/${detailEventId}`):navigate('/');
+          detailEventId ? navigate(`/detailevent/${detailEventId}`) : navigate('/');
           localStorage.setItem(
             "authData",
             JSON.stringify({
@@ -60,6 +60,16 @@ const Login = () => {
         }
         if (response?.userData?.role === "Admin") {
           navigate("/admin");
+          localStorage.setItem(
+            "authData",
+            JSON.stringify({
+              isLogin: true,
+              accessToken: response?.accessToken,
+            })
+          );
+        }
+        if (response?.userData?.role === "Staff") {
+          navigate("/staff");
           localStorage.setItem(
             "authData",
             JSON.stringify({

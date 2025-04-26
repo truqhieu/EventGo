@@ -431,7 +431,6 @@ const DetailEvent = () => {
                                       style={{
                                         right: 0,
                                         top: "-20%",
-                                        right: "80%",
                                       }}
                                     >
                                       {editingFeedbackId === item._id ? (

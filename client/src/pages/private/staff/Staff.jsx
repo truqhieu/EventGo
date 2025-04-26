@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useDispatch, useSelector } from "react-redux";
-import "./Admin.css";
+import { useNavigate } from "react-router-dom";
+import "../admin/Admin.css";
 import { fetchAllEvent } from "../../../reducer/eventReducer";
 import {
   apiCreateEvent,
@@ -15,8 +16,13 @@ import { toast } from "react-toastify";
 import { fetchDataSpeaker } from "../../../reducer/speakerReducer";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { Audio } from "react-loader-spinner";
-const Admin = () => {
+import UserManage from "../userManage/UserManage";
+import StaffManage from "../userManage/StaffManage";
+
+const Staff = () => {
+
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState({
     confirmed: false,
@@ -44,9 +50,11 @@ const Admin = () => {
   const handleModalToggle = () => {
     setShowModal(!showModal);
   };
+
   useEffect(() => {
     dispatch(fetchAllEvent());
   }, [dispatch]);
+
   const [selectedOption, setSelectedOption] = useState(""); // Dropdown Admin
 
   const [eventStatusFilter, setEventStatusFilter] = useState("all"); // Lọc theo trạng thái sự kiện
@@ -67,6 +75,12 @@ const Admin = () => {
   const [statusUpdEventRegistant, setStatusUpdEventRegistant] = useState(null);
 
   const [eventRegistantData, setEventRegistantData] = useState(null);
+
+  // USER
+  const [isUserList, setIsUserList] = useState(false);
+  const [isUpdateUser, setIsUpdateUser] = useState(false);
+
+
   const [formAdd, setFormAdd] = useState({
     title: "",
     description: "",
@@ -122,22 +136,71 @@ const Admin = () => {
   //   },
   // });
 
+  // Hàm xử lý logout
+  const handleLogout = () => {
+    // Xóa token trong localStorage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("authData"); 
+
+    // Chuyển hướng về trang đăng nhập
+    toast.success("Logged out successfully!");
+    navigate("/login");
+  };
+
   const handleSelectChange = (event) => {
     setSelectedOption(event.target.value);
     if (event.target.value === "logout") {
-      alert("Logging out...");
+      handleLogout();
     }
   };
   // Lọc dữ liệu dựa trên bộ lọc
 
   const handleSelectEvent = (view) => {
-    if (view === "list") {
+    if (view === "eventList") {
       setIsEventList(true);
       setIsEventDetail(false);
       setIsUpdateEvent(false);
-    } else if (view === "detail") {
+      setIsUserList(false);
+     
+      setIsUpdateUser(false);
+    } else if (view === "eventDetail") {
       setIsEventList(false);
       setIsEventDetail(true);
+      setIsUpdateEvent(false);
+      setIsUserList(false);
+     
+      setIsUpdateUser(false);
+    } else if (view === "eventUpdate") {
+      setIsEventList(false);
+      setIsEventDetail(false);
+      setIsUpdateEvent(true);
+      setIsUserList(false);
+     
+      setIsUpdateUser(false);
+    }
+  };
+
+  const handleSelectUser = (view) => {
+    if (view === "userList") {
+      setIsUserList(true);
+     
+      setIsUpdateUser(false);
+      setIsEventList(false);
+      setIsEventDetail(false);
+      setIsUpdateEvent(false);
+    } else if (view === "staffList") {
+      setIsUserList(false);
+      setIsStaffList(true);
+      setIsUpdateUser(false);
+      setIsEventList(false);
+      setIsEventDetail(false);
+      setIsUpdateEvent(false);
+    } else if (view === "userUpdate") {
+      setIsUserList(false);
+     
+      setIsUpdateUser(true);
+      setIsEventList(false);
+      setIsEventDetail(false);
       setIsUpdateEvent(false);
     }
   };
@@ -432,19 +495,19 @@ const Admin = () => {
   const listDataFilter = Array.isArray(eventAll?.mess)
     ? [...eventAll?.mess]
     : [];
-  const listDataFilterDetail = Array.isArray( eventRegistantData?.attendees)
-    ? [... eventRegistantData?.attendees]
+  const listDataFilterDetail = Array.isArray(eventRegistantData?.attendees)
+    ? [...eventRegistantData?.attendees]
     : [];
 
-  
-    let afterFilterDetail = listDataFilterDetail?.filter((item) => {
-      
-      // const matchesStatusEvent =
-      // eventStatusFilterDetail === "all" || item?.eventstatus === eventStatusFilterDetail;
-      const matchesStatusUser =userStatusFilterDetail === "all" || item?.statusRegisEvent[0]?.status === userStatusFilterDetail;
-  
-      return matchesStatusUser ;
-    });
+
+  let afterFilterDetail = listDataFilterDetail?.filter((item) => {
+
+    // const matchesStatusEvent =
+    // eventStatusFilterDetail === "all" || item?.eventstatus === eventStatusFilterDetail;
+    const matchesStatusUser = userStatusFilterDetail === "all" || item?.statusRegisEvent[0]?.status === userStatusFilterDetail;
+
+    return matchesStatusUser;
+  });
 
   let afterFilter = listDataFilter?.filter((item) => {
     const matchesCategory =
@@ -529,14 +592,14 @@ const Admin = () => {
             attendees: prevData.attendees.map((attendee) =>
               attendee.id === selectedAttendee.id
                 ? {
-                    ...attendee,
-                    statusRegisEvent: attendee.statusRegisEvent.map(
-                      (status) => ({
-                        ...status,
-                        status: data,
-                      })
-                    ),
-                  }
+                  ...attendee,
+                  statusRegisEvent: attendee.statusRegisEvent.map(
+                    (status) => ({
+                      ...status,
+                      status: data,
+                    })
+                  ),
+                }
                 : attendee
             ),
           };
@@ -579,12 +642,13 @@ const Admin = () => {
             </a>
             {isUsersMenuOpen && (
               <div className="submenu">
-                <a href="#" className="nav-link">
-                  User Grid
-                </a>
-                <a href="#" className="nav-link">
+                <a
+                  className="nav-link"
+                  onClick={() => handleSelectUser("userList")}
+                >
                   User List
                 </a>
+                
                 <a href="#" className="nav-link">
                   Users Profile
                 </a>
@@ -604,13 +668,13 @@ const Admin = () => {
               <div className="submenu">
                 <a
                   className="nav-link"
-                  onClick={() => handleSelectEvent("list")}
+                  onClick={() => handleSelectEvent("eventList")}
                 >
                   Event List
                 </a>
                 <a
                   className="nav-link"
-                  onClick={() => handleSelectEvent("detail")}
+                  onClick={() => handleSelectEvent("eventDetail")}
                 >
                   Event Registrant
                 </a>
@@ -629,12 +693,11 @@ const Admin = () => {
               className="form-select"
               value={selectedOption}
               onChange={handleSelectChange}
+              style={{ width: "150px" }}
             >
               <option value="" disabled hidden>
-                Admin
+                Staff
               </option>
-              <option value="profile">Profile</option>
-              <option value="settings">Settings</option>
               <option value="logout" className="text-danger">
                 Logout
               </option>
@@ -894,15 +957,14 @@ const Admin = () => {
                       <td>{event?.attendees?.length || 0}</td>
                       <td>
                         <span
-                          className={`badge bg-${
-                            event.status === "Upcoming"
-                              ? "warning"
-                              : event.status === "Ongoing"
+                          className={`badge bg-${event.status === "Upcoming"
+                            ? "warning"
+                            : event.status === "Ongoing"
                               ? "primary"
                               : event.status === "Completed"
-                              ? "success"
-                              : "danger"
-                          }`}
+                                ? "success"
+                                : "danger"
+                            }`}
                         >
                           {event?.status}
                         </span>
@@ -912,17 +974,17 @@ const Admin = () => {
                         <div className="d-flex gap-2">
                           <button
                             className="btn btn-primary btn-sm"
-                            onClick={(e) =>{
+                            onClick={(e) => {
                               e.stopPropagation(); // Ngăn sự kiện truyền lên thẻ <tr>
                               handleOpenUpdateEvent(event?._id)
                             }}
                           >
                             Update
                           </button>
-                         
+
                           <button
                             className="btn btn-danger btn-sm"
-                            onClick={(e) =>{
+                            onClick={(e) => {
                               e.stopPropagation(); // Ngăn sự kiện truyền lên thẻ <tr>
                               handleDeletedEvent(event?._id)
                             }}
@@ -965,7 +1027,7 @@ const Admin = () => {
 
                 <select
                   className="form-select w-auto"
-                   value={userStatusFilterDetail}
+                  value={userStatusFilterDetail}
                   onChange={(e) => setUserStatusFilterDetail(e.target.value)}
                 >
                   <option value="all">All User Status</option>
@@ -1001,15 +1063,14 @@ const Admin = () => {
                       <td>{eventRegistantData.capacity || "N/A"}</td>
                       <td>
                         <span
-                          className={`badge bg-${
-                            eventRegistantData.eventstatus === "Upcoming"
-                              ? "warning"
-                              : eventRegistantData.eventstatus === "Ongoing"
+                          className={`badge bg-${eventRegistantData.eventstatus === "Upcoming"
+                            ? "warning"
+                            : eventRegistantData.eventstatus === "Ongoing"
                               ? "primary"
                               : eventRegistantData.eventstatus === "Completed"
-                              ? "success"
-                              : "danger"
-                          }`}
+                                ? "success"
+                                : "danger"
+                            }`}
                         >
                           {eventRegistantData.eventstatus}
                         </span>
@@ -1019,13 +1080,12 @@ const Admin = () => {
                           (status, statusIndex) => (
                             <span
                               key={statusIndex}
-                              className={`badge bg-${
-                                status.status === "pending"
-                                  ? "secondary"
-                                  : status.status === "confirmed"
+                              className={`badge bg-${status.status === "pending"
+                                ? "secondary"
+                                : status.status === "confirmed"
                                   ? "success"
                                   : "danger"
-                              }`}
+                                }`}
                             >
                               {status.status}
                             </span>
@@ -1074,7 +1134,7 @@ const Admin = () => {
                       <div className="form-group mt-3">
                         <label>Chọn trạng thái mới:</label>
                         {selectedAttendee?.statusRegisEvent?.[0]?.status ===
-                        "pending" ? (
+                          "pending" ? (
                           <div className="d-flex gap-2 mt-2">
                             <button
                               className="btn btn-success"
@@ -1205,8 +1265,8 @@ const Admin = () => {
                     value={
                       initialUpd?.endDate
                         ? new Date(initialUpd.endDate).toLocaleDateString(
-                            "en-CA"
-                          ) // Đồng nhất định dạng với 'Date'
+                          "en-CA"
+                        ) // Đồng nhất định dạng với 'Date'
                         : ""
                     }
                   />
@@ -1405,9 +1465,16 @@ const Admin = () => {
             </form>
           </div>
         )}
+
+        {/* User List */}
+        {isUserList && (
+          <UserManage />
+        )
+        }
+
       </div>
     </div>
   );
 };
 
-export default Admin;
+export default Staff;
