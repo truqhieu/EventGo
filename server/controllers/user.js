@@ -242,22 +242,23 @@ const eventRegistration = asyncHandler(async (req, res) => {
     });
   }
 
-  // Nếu sự kiện có tính phí, trả về thông tin QR thanh toán
+  // Nếu sự kiện có tính phí, trả về thông tin thanh toán
   if (event.isPaid) {
-    const qrCodeUrl = `https://example.com/payment?eventId=${eventId}&userId=${_id}`;
     return res.status(200).json({
       success: true,
-      mess: "This event requires payment. Please complete the payment to register.",
-      qrCodeUrl,
+      message: "This event requires payment",
+      isPaid: true,
       price: event.price,
+      paymentMethods: event.paymentMethods,
+      nextStep: "Call /api/payment/create to initiate payment",
     });
   }
 
   // Đăng ký sự kiện miễn phí
-  user.eventsAttended.push({ event: eventId });
+  user.eventsAttended.push({ event: eventId, status: "confirmed" });
   event.attendees.push(_id);
   await event.save();
-  const userRegisted = await user.save();
+  await user.save();
 
   // Gửi email thông báo
   const html = `Xin chào ${user?.name}, bạn đã hoàn tất quá trình đăng ký sự kiện ${event?.title}.`;
@@ -270,7 +271,11 @@ const eventRegistration = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     mess: "Event registered successfully",
-    data: userRegisted,
+    data: {
+      eventId: event._id,
+      eventTitle: event.title,
+      status: "confirmed",
+    },
   });
 });
 

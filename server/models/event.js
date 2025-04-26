@@ -71,6 +71,11 @@ var eventSchema = new mongoose.Schema(
     speaker: [{ type: mongoose.Schema.Types.ObjectId, ref: "Speaker" }],
     isPaid: { type: Boolean, default: false }, // Sự kiện có tính phí hay không
     price: { type: Number, default: 0 }, // Giá vé (nếu có)
+    paymentMethods: {
+      type: [String],
+      enum: ["momo", "zalopay", "banking", "cash"],
+      default: [],
+    },
   },
   { timestamps: true }
 );
