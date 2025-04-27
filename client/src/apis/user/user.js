@@ -87,3 +87,7 @@ export const apiAssignEventToStaff = async (staffId, eventId) => {
         { staffId, eventId }
     );
 };
+
+export const apiRemoveAssignedEvent = async (staffId, eventId) => {
+    return await apiRequest.post('/api/user/remove-assigned-event', { staffId, eventId });
+};

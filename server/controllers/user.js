@@ -9,7 +9,6 @@ const sendMail = require("../ultils/sendMail");
 const TempRegister = require("../models/tempoRegistation");
 const uniqid = require("uniqid");
 
-
 const createUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
@@ -73,7 +72,10 @@ const refreshToken = asyncHandler(async (req, res) => {
       .status(403)
       .json({ success: false, message: "No refresh token in cookie!" });
   }
-  const decoded = await jwt.verify(cookie.refreshToken, process.env.REFRESH_SECRETKEY);
+  const decoded = await jwt.verify(
+    cookie.refreshToken,
+    process.env.REFRESH_SECRETKEY
+  );
 
   const match = await User.findOne({
     _id: decoded._id,
@@ -110,7 +112,9 @@ const finalRegister = asyncHandler(async (req, res) => {
   }
 
   const currentTime = new Date();
-  const tokenExpirationTime = new Date(infoUser.createdAt.getTime() + 24 * 60 * 60 * 1000);
+  const tokenExpirationTime = new Date(
+    infoUser.createdAt.getTime() + 24 * 60 * 60 * 1000
+  );
 
   if (currentTime > tokenExpirationTime) {
     await TempRegister.deleteOne({
@@ -174,11 +178,7 @@ const login = asyncHandler(async (req, res) => {
   const accessToken = genAccessToken(user._id, user.role);
   const refreshToken = genRefreshToken(user._id, user.role);
 
-  await User.findByIdAndUpdate(
-    user._id,
-    { refreshToken },
-    { new: true }
-  );
+  await User.findByIdAndUpdate(user._id, { refreshToken }, { new: true });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -295,7 +295,9 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
   if (eventStatus && eventStatus !== "all") {
     users = users.filter((user) =>
-      user.eventsAttended.some((eventEntry) => eventEntry.status === eventStatus)
+      user.eventsAttended.some(
+        (eventEntry) => eventEntry.status === eventStatus
+      )
     );
   }
 
@@ -324,14 +326,17 @@ const getUserById = asyncHandler(async (req, res) => {
 //updateUser
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, email, password, role, phone, address, profileImage } = req.body;
+  const { name, email, password, role, phone, address, profileImage } =
+    req.body;
 
   const updateData = { name, email, role, phone, address, profileImage };
   if (password) {
     updateData.password = password; // Lưu mật khẩu không mã hóa (theo logic hiện tại của bạn)
   }
 
-  const user = await User.findByIdAndUpdate(id, updateData, { new: true }).select("-password -refreshToken");
+  const user = await User.findByIdAndUpdate(id, updateData, {
+    new: true,
+  }).select("-password -refreshToken");
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -359,7 +364,6 @@ const deleteUser = asyncHandler(async (req, res) => {
     mess: "User deleted successfully",
   });
 });
-
 
 // Phân công sự kiện cho staff
 const assignEventToStaff = asyncHandler(async (req, res) => {
@@ -402,6 +406,30 @@ const assignEventToStaff = asyncHandler(async (req, res) => {
   });
 });
 
+
+
+const removeAssignedEvent = async (req, res) => {
+  try {
+    const { staffId, eventId } = req.body;
+    const user = await User.findById(staffId);
+    if (!user || user.role !== 'Staff') {
+      return res.status(400).json({ success: false, mess: 'Invalid staff member' });
+    }
+    const eventIndex = user.assignedEvents.findIndex(
+      (entry) => entry.event.toString() === eventId
+    );
+    if (eventIndex === -1) {
+      return res.status(400).json({ success: false, mess: 'Event not assigned to this staff' });
+    }
+    user.assignedEvents.splice(eventIndex, 1);
+    await user.save();
+    res.status(200).json({ success: true, mess: 'Event removed successfully' });
+  } catch (error) {
+    res.status(400).json({ success: false, mess: error.message });
+  }
+};
+
+
 module.exports = {
   createUser,
   refreshToken,
@@ -413,5 +441,6 @@ module.exports = {
   getUserById,
   updateUser,
   deleteUser,
-  assignEventToStaff
+  assignEventToStaff,
+  removeAssignedEvent,
 };

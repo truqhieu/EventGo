@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-
 import {
     apiCreateEvent,
     apiDeleteEvent,
@@ -12,26 +11,20 @@ import {
     apiUpdateStatusEventRegistant,
 } from "../../../apis/event/event";
 import { fetchAllEvent } from '../../../reducer/eventReducer';
+import { Modal, Button } from 'react-bootstrap';
 
-const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEventDetail,
-    setEventRegistantData, }) => {
-
+const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEventDetail, setEventRegistantData }) => {
     const dispatch = useDispatch();
-
-    const [eventStatusFilter, setEventStatusFilter] = useState("all"); // Lọc theo trạng thái sự kiện
-    const [eventStatusFilterDetail, setEventStatusFilterDetail] = useState("all"); // Lọc theo trạng thái sự kiện
-    const statusEvent = ["Upcoming", "Ongoing", "Completed", "Cancelled"];
-    const [categoryFilter, setcategoryFilter] = useState("all"); // Lọc theo category
+    const [eventStatusFilter, setEventStatusFilter] = useState("all");
+    const [categoryFilter, setcategoryFilter] = useState("all");
     const [isAddEventOpen, setIsAddEventOpen] = useState(false);
     const [afterLogoImage, setAfterLogoImage] = useState(null);
     const [afterBackgroundImage, setAfterBackgroundImage] = useState(null);
-    const [modalFilterDetailEvent, setModalFilterDetailEvent] = useState(false);
-
-    const handleCloseAddEvent = () => setIsAddEventOpen(false);
-    const handleOpenAddEvent = () => setIsAddEventOpen(true);
+    const [previewLogo, setPreviewLogo] = useState(null);
+    const [previewBackground, setPreviewBackground] = useState(null);
 
     const { dataSpeakerAll } = useSelector((state) => state.speakerList);
-
+    const statusEvent = ["Upcoming", "Ongoing", "Completed", "Cancelled"];
     const categoriesEvent = [
         "Technology",
         "Business",
@@ -42,28 +35,6 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
         "Entertainment",
         "Cuisine",
     ];
-
-    const [initialUpd, setInitialUpd] = useState({
-        title: "",
-        description: "",
-        date: "",
-        endDate: "",
-        location: "",
-        capacity: "",
-        category: "",
-        speaker: "",
-        status: "",
-        backgroundImage: "",
-        logoImage: "",
-        organizerUnit: {
-            name: "",
-            address: "",
-            contactInfo: {
-                phone: "",
-                email: "",
-            },
-        },
-    });
 
     const [formAdd, setFormAdd] = useState({
         title: "",
@@ -80,18 +51,15 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
     const formatDateEn = (isoDate) => {
         if (!isoDate) return "N/A";
         return new Date(isoDate).toLocaleDateString("en-US", {
-            month: "long", // April
-            day: "numeric", // 25
-            year: "numeric", // 2025
+            month: "long",
+            day: "numeric",
+            year: "numeric",
         });
     };
 
     const handleEventRegistant = async (eid) => {
         setIsEventList(false);
         setIsEventDetail(true);
-        setModalFilterDetailEvent(true);
-        setIsUpdateEvent(false);
-        // setIdEventRegistant(eid);
         try {
             const response = await apiEventRegistantDetail(eid);
             if (response?.success) {
@@ -103,39 +71,35 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
     };
 
     const handleOpenUpdateEvent = async (eid) => {
-        setIsUpdateEvent(true); 
-        setIdUpdateEvent(eid); 
+        setIsUpdateEvent(true);
+        setIdUpdateEvent(eid);
         setIsEventList(false);
-
         try {
             const response = await apiGetEventById(eid);
-            setInitialUpd(response?.mess);
-            // setFormUpd(response?.mess);
+            setFormAdd(response?.mess);
         } catch (error) {
             toast.error("Failed to update event");
         }
     };
 
     const handleDeletedEvent = async (eid) => {
-        const alert = "Are you delete this event";
-        if (window.confirm(alert)) {
+        if (window.confirm("Are you sure you want to delete this event?")) {
             try {
                 const response = await apiDeleteEvent(eid);
-
                 if (response?.success) {
-                    toast.success("Remove successfully", { icon: "🚀" });
+                    toast.success("Removed successfully", { icon: "🚀" });
                     dispatch(fetchAllEvent());
                 }
             } catch (error) {
-                toast.success(`Remove Failed`, { icon: "🚀" });
+                toast.error("Remove Failed", { icon: "🚀" });
             }
         }
     };
 
     const handleInputAdd = (e) => {
         const { name, value } = e.target;
-        setFormAdd(() => ({
-            ...formAdd,
+        setFormAdd((prev) => ({
+            ...prev,
             [name]: value,
         }));
     };
@@ -146,40 +110,32 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
 
     const handleChooseImgLogo = (e) => {
         const file = e.target.files[0];
-
         if (!file) {
-            toast.error("Please choose image to create event");
+            toast.error("Please choose an image");
             return;
         }
-
         const validFormImage = ["image/jpeg", "image/png"];
-
         if (!validFormImage.includes(file.type)) {
-            toast.error("Please choose image file must be jpeg or png");
+            toast.error("Please choose a JPEG or PNG image");
             return;
         }
-
-        // Gửi tệp hình ảnh thay vì đọc và lưu dưới dạng base64
-        setAfterLogoImage(file); // Lưu tệp gốc để gửi đi
+        setAfterLogoImage(file);
+        setPreviewLogo(URL.createObjectURL(file));
     };
 
     const handleChooseImgBackGround = (e) => {
         const file = e.target.files[0];
-
         if (!file) {
-            toast.error("Please choose image to create event");
+            toast.error("Please choose an image");
             return;
         }
-
         const validFormImage = ["image/jpeg", "image/png"];
-
         if (!validFormImage.includes(file.type)) {
-            toast.error("Please choose image file must be jpeg or png");
+            toast.error("Please choose a JPEG or PNG image");
             return;
         }
-
-        // Gửi tệp hình ảnh thay vì đọc và lưu dưới dạng base64
-        setAfterBackgroundImage(file); // Lưu tệp gốc để gửi đi
+        setAfterBackgroundImage(file);
+        setPreviewBackground(URL.createObjectURL(file));
     };
 
     const handleSubmitAdd = async (e) => {
@@ -212,19 +168,14 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
         formData.append("capacity", formAdd.capacity);
         formData.append("category", formAdd.category);
         formData.append("speaker", formAdd.speaker);
-
         if (afterLogoImage) formData.append("logoImage", afterLogoImage);
-        if (afterBackgroundImage)
-            formData.append("backgroundImage", afterBackgroundImage);
+        if (afterBackgroundImage) formData.append("backgroundImage", afterBackgroundImage);
 
         try {
             const response = await apiCreateEvent(formData);
-            console.log("API response:", response);
             if (response?.success) {
-                toast.success("Create event successfully!");
-
-                // ✨ Đóng modal và reset form NGAY LẬP TỨC
-                handleCloseAddEvent();
+                toast.success("Event created successfully!");
+                setIsAddEventOpen(false);
                 setFormAdd({
                     title: "",
                     description: "",
@@ -236,41 +187,31 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
                     backgroundImage: "",
                     logoImage: "",
                 });
-
-                // ✨ Gọi fetch sau cùng để tránh delay UI
-                setTimeout(() => {
-                    dispatch(fetchAllEvent());
-                }, 0);
+                setPreviewLogo(null);
+                setPreviewBackground(null);
+                dispatch(fetchAllEvent());
             } else {
-                toast.error(
-                    "Create event failed: " + (response.data?.message || "Unknown error")
-                );
+                toast.error("Create event failed: " + (response.data?.message || "Unknown error"));
             }
         } catch (error) {
             console.error(error);
             toast.error("Create event failed!");
         }
     };
-    const { eventAll, errorEventAll, loadingEventAll } = useSelector(
-        (state) => state.event
-    );
-    const listDataFilter = Array.isArray(eventAll?.mess)
-        ? [...eventAll?.mess]
-        : [];
+
+    const { eventAll } = useSelector((state) => state.event);
+    const listDataFilter = Array.isArray(eventAll?.mess) ? [...eventAll?.mess] : [];
 
     let afterFilter = listDataFilter?.filter((item) => {
-        const matchesCategory =
-            categoryFilter === "all" || item?.category === categoryFilter;
-        const matchesStatusEvent =
-            eventStatusFilter === "all" || item?.status === eventStatusFilter;
-
+        const matchesCategory = categoryFilter === "all" || item?.category === categoryFilter;
+        const matchesStatusEvent = eventStatusFilter === "all" || item?.status === eventStatusFilter;
         return matchesCategory && matchesStatusEvent;
     });
 
     return (
         <div>
-            <h3>Event List</h3>
-            <div className="d-flex gap-2 mb-3 mt-5">
+            <h3 className="mb-4">Event List</h3>
+            <div className="d-flex gap-3 mb-4 flex-wrap">
                 <select
                     className="form-select w-auto"
                     value={eventStatusFilter}
@@ -283,7 +224,6 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
                         </option>
                     ))}
                 </select>
-
                 <select
                     className="form-select w-auto"
                     value={categoryFilter}
@@ -296,278 +236,245 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEv
                         </option>
                     ))}
                 </select>
-
-                {/* <input
-                    type="text"
-                    className="form-control w-25"
-                    placeholder="Filter by Title"
-                    value={titleFilter}
-                    onChange={(e) => setTitleFilter(e.target.value)}
-                  /> */}
+                <Button variant="primary" onClick={() => setIsAddEventOpen(true)}>
+                    Add Event
+                </Button>
             </div>
 
-            {/* Table */}
-            {isAddEventOpen && (
-                <div
-                    className="modal fade show"
-                    tabIndex="-1"
-                    style={{ display: "block" }}
-                    aria-labelledby="exampleModalLabel"
-                    aria-hidden="true"
-                >
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title" id="exampleModalLabel">
-                                    Add Event
-                                </h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    aria-label="Close"
-                                    onClick={handleCloseAddEvent}
-                                ></button>
+            <div className="card">
+                <div className="card-body p-0">
+                    <table className="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>End Date</th>
+                                <th>Location</th>
+                                <th>Organizer</th>
+                                <th>Capacity</th>
+                                <th>Category</th>
+                                <th>Attendees</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {afterFilter?.length > 0 ? (
+                                afterFilter.map((event, index) => (
+                                    <tr
+                                        key={index}
+                                        onClick={() => handleEventRegistant(event?._id)}
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        <td>{event?.title}</td>
+                                        <td>{formatDateEn(event?.date)}</td>
+                                        <td>{event?.endDate ? formatDateEn(event.endDate) : "N/A"}</td>
+                                        <td>{event?.location || "N/A"}</td>
+                                        <td>
+                                            <div>
+                                                <strong>{event?.organizerUnit?.name || "N/A"}</strong>
+                                                <br />
+                                                📍 {event?.organizerUnit?.address || "No Address"}
+                                                <br />
+                                                📞 {event?.organizerUnit?.contactInfo?.phone || "No Phone"}
+                                                <br />
+                                                📧 {event?.organizerUnit?.contactInfo?.email || "No Email"}
+                                            </div>
+                                        </td>
+                                        <td>{event?.capacity}</td>
+                                        <td>{event?.category}</td>
+                                        <td>{event?.attendees?.length || 0}</td>
+                                        <td>
+                                            <span
+                                                className={`badge bg-${event.status === "Upcoming"
+                                                        ? "warning"
+                                                        : event.status === "Ongoing"
+                                                            ? "primary"
+                                                            : event.status === "Completed"
+                                                                ? "success"
+                                                                : "danger"
+                                                    }`}
+                                            >
+                                                {event?.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div className="d-flex gap-2">
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleOpenUpdateEvent(event?._id);
+                                                    }}
+                                                >
+                                                    Update
+                                                </Button>
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeletedEvent(event?._id);
+                                                    }}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="10" className="text-center text-muted">
+                                        No events found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <Modal show={isAddEventOpen} onHide={() => setIsAddEventOpen(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Event</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <form onSubmit={handleSubmitAdd}>
+                        <div className="row">
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="title" className="form-label">Title</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="title"
+                                    value={formAdd.title}
+                                    onChange={handleInputAdd}
+                                />
                             </div>
-                            <div className="modal-body">
-                                <form onSubmit={handleSubmitAdd}>
-                                    <div className="mb-3">
-                                        <label htmlFor="title" className="form-label">
-                                            Title
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="title"
-                                            onChange={handleInputAdd}
-                                        />
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="date" className="form-label">Date</label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    name="date"
+                                    value={formAdd.date}
+                                    onChange={handleInputAdd}
+                                />
+                            </div>
+                            <div className="col-md-12 mb-3">
+                                <label htmlFor="description" className="form-label">Description</label>
+                                <textarea
+                                    className="form-control"
+                                    name="description"
+                                    value={formAdd.description}
+                                    onChange={handleInputAdd}
+                                    rows="4"
+                                />
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="location" className="form-label">Location</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    name="location"
+                                    value={formAdd.location}
+                                    onChange={handleInputAdd}
+                                />
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="capacity" className="form-label">Capacity</label>
+                                <input
+                                    type="number"
+                                    className="form-control"
+                                    name="capacity"
+                                    value={formAdd.capacity}
+                                    onChange={handleInputAdd}
+                                />
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="category" className="form-label">Category</label>
+                                <select
+                                    name="category"
+                                    className="form-select"
+                                    value={formAdd.category}
+                                    onChange={handleInputAdd}
+                                >
+                                    <option value="">Select Category</option>
+                                    {categoriesEvent?.map((item, index) => (
+                                        <option value={item} key={index}>
+                                            {item}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="speaker" className="form-label">Speakers</label>
+                                <select
+                                    name="speaker"
+                                    className="form-select"
+                                    value={formAdd.speaker}
+                                    onChange={handleInputAdd}
+                                >
+                                    <option value="">Select Speaker</option>
+                                    {dataSpeakerAll?.map((item, index) => (
+                                        <option value={item?._id} key={index}>
+                                            {item?.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="backgroundImage" className="form-label">Background Image</label>
+                                <div className="upload-container">
+                                    <div className="preview-box">
+                                        {previewBackground && <img src={previewBackground} alt="Background Preview" />}
                                     </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="description" className="form-label">
-                                            Description
-                                        </label>
-                                        <textarea
-                                            className="form-control"
-                                            id="description"
-                                            name="description"
-                                            onChange={handleInputAdd}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="date" className="form-label">
-                                            Date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            className="form-control"
-                                            id="date"
-                                            name="date"
-                                            onChange={handleInputAdd}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="location" className="form-label">
-                                            Location
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            id="location"
-                                            name="location"
-                                            onChange={handleInputAdd}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="category" className="form-label">
-                                            Category
-                                        </label>
-                                        <select
-                                            onChange={handleInputAdd}
-                                            name="category"
-                                            className="form-select"
-                                            value={formAdd.category}
-                                        >
-                                            <option value="">Select Category</option>
-                                            {categoriesEvent?.map((item, index) => (
-                                                <option value={item} key={index}>
-                                                    {item}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="capacity" className="form-label">
-                                            Capacity
-                                        </label>
-                                        <input
-                                            type="number"
-                                            className="form-control"
-                                            id="capacity"
-                                            name="capacity"
-                                            onChange={handleInputAdd}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label
-                                            htmlFor="backgroundImage"
-                                            className="form-label"
-                                        >
-                                            BackgroundImage
-                                        </label>
+                                    <label className="upload-label">
+                                        <span>{previewBackground ? "Change Image" : "Upload Background Image"}</span>
                                         <input
                                             type="file"
-                                            className="form-control"
                                             accept="image/*"
-                                            id="backgroundImage"
                                             name="backgroundImage"
                                             onChange={handleChooseImgBackGround}
+                                            style={{ display: 'none' }}
                                         />
+                                    </label>
+                                </div>
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label htmlFor="logoImage" className="form-label">Logo Image</label>
+                                <div className="upload-container">
+                                    <div className="preview-box">
+                                        {previewLogo && <img src={previewLogo} alt="Logo Preview" />}
                                     </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="logoImage" className="form-label">
-                                            Logo Image
-                                        </label>
+                                    <label className="upload-label">
+                                        <span>{previewLogo ? "Change Image" : "Upload Logo Image"}</span>
                                         <input
                                             type="file"
-                                            className="form-control"
                                             accept="image/*"
-                                            id="logoImage"
                                             name="logoImage"
                                             onChange={handleChooseImgLogo}
+                                            style={{ display: 'none' }}
                                         />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="speaker" className="form-label">
-                                            Speakers
-                                        </label>
-                                        <select
-                                            onChange={handleInputAdd}
-                                            name="speaker"
-                                            className="form-select"
-                                        >
-                                            {dataSpeakerAll?.map((item, index) => (
-                                                <option value={item?._id} key={index}>
-                                                    {item?.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <button type="submit" className="btn btn-primary">
-                                        Save Event
-                                    </button>
-                                </form>
+                                    </label>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            )}
-            <button
-                className="btn btn-primary mb-3"
-                onClick={handleOpenAddEvent}
-            >
-                Add Event
-            </button>
-            <table className="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>EndDate</th>
-                        <th>Location</th>
-                        <th>OrganizerUnit</th>
-                        <th>Capacity</th>
-                        <th>Category</th>
-                        <th>Attendees</th>
-                        <th>EventStatus</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {/* {eventAll?.mess?.length > 0 ? (
-                      eventAll?.mess?.map((event, index) => ( */}
-
-                    {afterFilter?.length > 0 ? (
-                        afterFilter.map((event, index) => (
-                            <tr
-                                key={index}
-                                onClick={() => handleEventRegistant(event?._id)}
-                                style={{ cursor: "pointer" }}
-                            >
-                                <td>{event?.title}</td>
-                                <td>{formatDateEn(event?.date)}</td>
-                                <td>
-                                    {event?.endDate ? formatDateEn(event.endDate) : "N/A"}
-                                </td>
-                                <td>{event?.location || "N/A"}</td>
-
-                                <td>
-                                    <div>
-                                        <strong>{event?.organizerUnit?.name || "N/A"}</strong>
-                                        <br />
-                                        📍 {event?.organizerUnit?.address || "No Address"}
-                                        <br />
-                                        📞{" "}
-                                        {event?.organizerUnit?.contactInfo?.phone ||
-                                            "No Phone"}
-                                        <br />
-                                        📧{" "}
-                                        {event?.organizerUnit?.contactInfo?.email ||
-                                            "No Email"}
-                                    </div>
-                                </td>
-                                <td>{event?.capacity}</td>
-                                <td>{event?.category}</td>
-                                <td>{event?.attendees?.length || 0}</td>
-                                <td>
-                                    <span
-                                        className={`badge bg-${event.status === "Upcoming"
-                                            ? "warning"
-                                            : event.status === "Ongoing"
-                                                ? "primary"
-                                                : event.status === "Completed"
-                                                    ? "success"
-                                                    : "danger"
-                                            }`}
-                                    >
-                                        {event?.status}
-                                    </span>
-                                </td>
-                                <td>
-                                    {/* Dùng d-flex để hiển thị nút ngang hàng */}
-                                    <div className="d-flex gap-2">
-                                        <button
-                                            className="btn btn-primary btn-sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Ngăn sự kiện truyền lên thẻ <tr>
-                                                handleOpenUpdateEvent(event?._id);
-                                            }}
-                                        >
-                                            Update
-                                        </button>
-
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation(); // Ngăn sự kiện truyền lên thẻ <tr>
-                                                handleDeletedEvent(event?._id);
-                                            }}
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="9" className="text-center text-muted">
-                                No events found.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                        <div className="d-flex gap-2 mt-3">
+                            <Button type="submit" variant="primary">
+                                Save Event
+                            </Button>
+                            <Button variant="secondary" onClick={() => setIsAddEventOpen(false)}>
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </Modal.Body>
+            </Modal>
         </div>
-    )
-}
+    );
+};
 
-export default EventList
+export default EventList;   

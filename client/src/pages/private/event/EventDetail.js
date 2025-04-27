@@ -1,7 +1,5 @@
-import React, { useState } from 'react'
-import {
-    apiUpdateStatusEventRegistant,
-} from "../../../apis/event/event";
+import React, { useState } from 'react';
+import { apiUpdateStatusEventRegistant } from "../../../apis/event/event";
 import { toast } from "react-toastify";
 import { Audio } from "react-loader-spinner";
 import { Modal, Button } from 'react-bootstrap';
@@ -29,15 +27,13 @@ const EventDetail = ({
 
     const handleUpdateStatusEventRegistant = async (status) => {
         setLoading((prev) => ({ ...prev, [status]: true }));
-
         try {
-            await new Promise((resolve) => setTimeout(resolve, 2000)); // Giả lập độ trễ
+            await new Promise((resolve) => setTimeout(resolve, 2000));
             const response = await apiUpdateStatusEventRegistant(
                 selectedAttendee?.id,
                 status,
                 selectedAttendee?.statusRegisEvent[0]?.idEvent
             );
-
             if (response?.success) {
                 setSelectedAttendee((prev) => ({
                     ...prev,
@@ -46,7 +42,6 @@ const EventDetail = ({
                         status,
                     })),
                 }));
-
                 setEventRegistantData((prev) => ({
                     ...prev,
                     attendees: prev.attendees.map((attendee) =>
@@ -61,7 +56,6 @@ const EventDetail = ({
                             : attendee
                     ),
                 }));
-
                 toast.success(`${status} event status successfully!`);
                 setIsModalOpen(false);
             } else {
@@ -77,8 +71,8 @@ const EventDetail = ({
 
     return (
         <div>
-            <h3>Event Detail</h3>
-            <div className="d-flex gap-2 mb-3 mt-5">
+            <h3 className="mb-4">Event Detail</h3>
+            <div className="d-flex gap-3 mb-4 flex-wrap">
                 <select
                     className="form-select w-auto"
                     value={userStatusFilterDetail}
@@ -88,95 +82,104 @@ const EventDetail = ({
                     <option value="pending">Pending</option>
                     <option value="confirmed">Confirmed</option>
                 </select>
+                <Button
+                    variant="secondary"
+                    onClick={() => {
+                        setIsEventDetail(false);
+                        setModalFilterDetailEvent(false);
+                    }}
+                >
+                    Back to Event List
+                </Button>
             </div>
 
-            <table className="table table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Title</th>
-                        <th>Date</th>
-                        <th>Capacity</th>
-                        <th>Event Status</th>
-                        <th>User Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {afterFilterDetail?.length > 0 ? (
-                        afterFilterDetail?.map((attendee, index) => (
-                            <tr key={index}>
-                                <td>{attendee.name || 'N/A'}</td>
-                                <td>{attendee.email || 'N/A'}</td>
-                                <td>{eventRegistantData?.title || 'N/A'}</td>
-                                <td>{eventRegistantData?.date || 'N/A'}</td>
-                                <td>{eventRegistantData?.capacity || 'N/A'}</td>
-                                <td>
-                                    <span
-                                        className={`badge bg-${eventRegistantData?.eventstatus === 'Upcoming'
-                                                ? 'warning'
-                                                : eventRegistantData?.eventstatus === 'Ongoing'
-                                                    ? 'primary'
-                                                    : eventRegistantData?.eventstatus === 'Completed'
-                                                        ? 'success'
-                                                        : 'danger'
-                                            }`}
-                                    >
-                                        {eventRegistantData?.eventstatus || 'N/A'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span
-                                        className={`badge bg-${attendee.statusRegisEvent?.[0]?.status === 'pending'
-                                                ? 'secondary'
-                                                : attendee.statusRegisEvent?.[0]?.status === 'confirmed'
-                                                    ? 'success'
-                                                    : 'danger'
-                                            }`}
-                                    >
-                                        {attendee.statusRegisEvent?.[0]?.status || 'pending'}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button
-                                        type="button"
-                                        className="btn btn-info btn-sm"
-                                        onClick={() => {
-                                            setSelectedAttendee(attendee);
-                                            setIsModalOpen(true);
-                                        }}
-                                    >
-                                        Set
-                                    </button>
-                                </td>
+            <div className="card">
+                <div className="card-body p-0">
+                    <table className="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Title</th>
+                                <th>Date</th>
+                                <th>Capacity</th>
+                                <th>Event Status</th>
+                                <th>User Status</th>
+                                <th>Action</th>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="8" className="text-center">
-                                No User Register
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                        </thead>
+                        <tbody>
+                            {afterFilterDetail?.length > 0 ? (
+                                afterFilterDetail?.map((attendee, index) => (
+                                    <tr key={index}>
+                                        <td>{attendee.name || 'N/A'}</td>
+                                        <td>{attendee.email || 'N/A'}</td>
+                                        <td>{eventRegistantData?.title || 'N/A'}</td>
+                                        <td>{eventRegistantData?.date || 'N/A'}</td>
+                                        <td>{eventRegistantData?.capacity || 'N/A'}</td>
+                                        <td>
+                                            <span
+                                                className={`badge bg-${eventRegistantData?.eventstatus === 'Upcoming'
+                                                        ? 'warning'
+                                                        : eventRegistantData?.eventstatus === 'Ongoing'
+                                                            ? 'primary'
+                                                            : eventRegistantData?.eventstatus === 'Completed'
+                                                                ? 'success'
+                                                                : 'danger'
+                                                    }`}
+                                            >
+                                                {eventRegistantData?.eventstatus || 'N/A'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span
+                                                className={`badge bg-${attendee.statusRegisEvent?.[0]?.status === 'pending'
+                                                        ? 'secondary'
+                                                        : attendee.statusRegisEvent?.[0]?.status === 'confirmed'
+                                                            ? 'success'
+                                                            : 'danger'
+                                                    }`}
+                                            >
+                                                {attendee.statusRegisEvent?.[0]?.status || 'pending'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <Button
+                                                variant="info"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setSelectedAttendee(attendee);
+                                                    setIsModalOpen(true);
+                                                }}
+                                            >
+                                                Set
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="8" className="text-center">
+                                        No User Register
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
             <Modal show={isModalOpen} onHide={() => setIsModalOpen(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Cập nhật trạng thái</Modal.Title>
+                    <Modal.Title>Update Status</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div>
-                        <p>
-                            <strong>Name:</strong> {selectedAttendee?.name || 'N/A'}
-                        </p>
-                        <p>
-                            <strong>Email:</strong> {selectedAttendee?.email || 'N/A'}
-                        </p>
+                        <p><strong>Name:</strong> {selectedAttendee?.name || 'N/A'}</p>
+                        <p><strong>Email:</strong> {selectedAttendee?.email || 'N/A'}</p>
                     </div>
                     <div className="form-group mt-3">
-                        <label>Chọn trạng thái mới:</label>
+                        <label>Select New Status:</label>
                         {selectedAttendee?.statusRegisEvent?.[0]?.status === 'pending' ? (
                             <div className="d-flex gap-2 mt-2">
                                 <Button
@@ -194,7 +197,7 @@ const EventDetail = ({
                                             wrapperStyle={{ display: 'inline-block', marginRight: '5px' }}
                                         />
                                     ) : null}
-                                    {loading.confirmed ? 'ĐANG XỬ LÝ...' : 'Confirmed'}
+                                    {loading.confirmed ? 'Processing...' : 'Confirmed'}
                                 </Button>
                                 <Button
                                     variant="danger"
@@ -211,7 +214,7 @@ const EventDetail = ({
                                             wrapperStyle={{ display: 'inline-block', marginRight: '5px' }}
                                         />
                                     ) : null}
-                                    {loading.cancelled ? 'ĐANG XỬ LÝ...' : 'Cancelled'}
+                                    {loading.cancelled ? 'Processing...' : 'Cancelled'}
                                 </Button>
                             </div>
                         ) : selectedAttendee?.statusRegisEvent?.[0]?.status === 'cancelled' ? (
@@ -223,7 +226,7 @@ const EventDetail = ({
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-                        Đóng
+                        Close
                     </Button>
                 </Modal.Footer>
             </Modal>

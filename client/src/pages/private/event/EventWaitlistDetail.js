@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { apiOpenSpots, apiEventRegistantDetail } from '../../../apis/event/event';
 import { toast } from 'react-toastify';
+import { Button } from 'react-bootstrap';
 
 const EventWaitlistDetail = ({
     eventRegistantData,
@@ -17,7 +18,6 @@ const EventWaitlistDetail = ({
             toast.error('Please enter a valid number of extra slots');
             return;
         }
-
         try {
             const response = await apiOpenSpots(eventRegistantData._id, extraSlots);
             if (response?.success) {
@@ -43,64 +43,65 @@ const EventWaitlistDetail = ({
 
     return (
         <div>
-            <h3>
-                Waitlist for “{eventRegistantData?.title}”
-                <small className="text-muted">
-                    ({eventRegistantData?.attendees?.length || 0}/
-                    {eventRegistantData?.capacity || 0})
+            <h3 className="mb-4">
+                Waitlist for "{eventRegistantData?.title}"
+                <small className="text-muted ms-2">
+                    ({eventRegistantData?.attendees?.length || 0}/{eventRegistantData?.capacity || 0})
                 </small>
             </h3>
-            <h5 className="mt-4">
-                Users on Waitlist ({eventRegistantData?.waitlist?.length || 0})
-            </h5>
-            <table className="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>User ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {eventRegistantData?.waitlist?.map((user, i) => (
-                        <tr key={i}>
-                            <td>{i + 1}</td>
-                            <td>{user._id}</td>
-                            <td>{user.name || 'N/A'}</td>
-                            <td>{user.email || 'N/A'}</td>
-                        </tr>
-                    )) || (
+            <h5 className="mb-3">Users on Waitlist ({eventRegistantData?.waitlist?.length || 0})</h5>
+            <div className="card">
+                <div className="card-body p-0">
+                    <table className="table table-bordered mb-0">
+                        <thead>
                             <tr>
-                                <td colSpan="4" className="text-center">
-                                    No users on waitlist
-                                </td>
+                                <th>No</th>
+                                <th>User ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
                             </tr>
-                        )}
-                </tbody>
-            </table>
-            <div className="d-flex align-items-center mt-2">
+                        </thead>
+                        <tbody>
+                            {eventRegistantData?.waitlist?.map((user, i) => (
+                                <tr key={i}>
+                                    <td>{i + 1}</td>
+                                    <td>{user._id}</td>
+                                    <td>{user.name || 'N/A'}</td>
+                                    <td>{user.email || 'N/A'}</td>
+                                </tr>
+                            )) || (
+                                    <tr>
+                                        <td colSpan="4" className="text-center">
+                                            No users on waitlist
+                                        </td>
+                                    </tr>
+                                )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div className="d-flex align-items-center gap-3 mt-3 flex-wrap">
                 <input
                     type="number"
-                    className="form-control w-auto me-2"
+                    className="form-control w-auto"
                     placeholder="Extra slots"
                     value={extraSlots}
                     onChange={(e) => setExtraSlots(e.target.value)}
                     min="1"
                 />
-                <button className="btn btn-success" onClick={handleOpenSlots}>
+                <Button variant="success" onClick={handleOpenSlots}>
                     Open Slots
-                </button>
+                </Button>
+                <Button
+                    variant="secondary"
+                    onClick={() => {
+                        setIsEventWaitlistDetail(false);
+                        setIsEventWaitlist(true);
+                    }}
+                >
+                    Back to Waitlist
+                </Button>
             </div>
-            <button
-                className="btn btn-secondary mt-3"
-                onClick={() => {
-                    setIsEventWaitlistDetail(false);
-                    setIsEventWaitlist(true);
-                }}
-            >
-                Back to Waitlist
-            </button>
         </div>
     );
 };
