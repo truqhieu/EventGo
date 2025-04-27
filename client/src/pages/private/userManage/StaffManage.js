@@ -417,7 +417,7 @@ const StaffManage = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{ width: "200px" }}
                             />
-                        
+
                             <select
                                 className="form-select"
                                 value={sortOrder}
