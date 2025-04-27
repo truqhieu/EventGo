@@ -78,6 +78,7 @@ const Staff = () => {
 
   // USER
   const [isUserList, setIsUserList] = useState(false);
+  const [isStaffList, setIsStaffList] = useState(false);
   const [isUpdateUser, setIsUpdateUser] = useState(false);
 
 
