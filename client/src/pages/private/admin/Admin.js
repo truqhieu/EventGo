@@ -8,6 +8,7 @@ import {
   apiDeleteEvent,
   apiEventRegistantDetail,
   apiGetEventById,
+  apiOpenSpots,
   apiUpdateEvent,
   apiUpdateStatusEventRegistant,
 } from "../../../apis/event/event";
@@ -33,6 +34,8 @@ const Admin = () => {
   const [updateImageBackground, setUpdateImageBackground] = useState(null);
 
   const { dataSpeakerAll } = useSelector((state) => state.speakerList);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [extraSlots, setExtraSlots] = useState("");
 
   useEffect(() => {
     dispatch(fetchDataSpeaker());
@@ -67,6 +70,19 @@ const Admin = () => {
   const [statusUpdEventRegistant, setStatusUpdEventRegistant] = useState(null);
 
   const [eventRegistantData, setEventRegistantData] = useState(null);
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+
+  const [isEventWaitlist, setIsEventWaitlist] = useState(false);
+  const [isEventWaitlistDetail, setIsEventWaitlistDetail] = useState(false);
+  const handleSelectWaitlist = () => {
+    setIsEventList(false);
+    setIsEventDetail(false);
+    setIsEventWaitlist(true);
+    setIsEventWaitlistDetail(false);
+    setIsUpdateEvent(false);
+  };
+  const handleOpenAddEvent = () => setIsAddEventOpen(true);
+  const handleCloseAddEvent = () => setIsAddEventOpen(false);
   const [formAdd, setFormAdd] = useState({
     title: "",
     description: "",
@@ -131,15 +147,11 @@ const Admin = () => {
   // Lọc dữ liệu dựa trên bộ lọc
 
   const handleSelectEvent = (view) => {
-    if (view === "list") {
-      setIsEventList(true);
-      setIsEventDetail(false);
-      setIsUpdateEvent(false);
-    } else if (view === "detail") {
-      setIsEventList(false);
-      setIsEventDetail(true);
-      setIsUpdateEvent(false);
-    }
+    setIsEventList(view === "list");
+    setIsEventDetail(view === "detail");
+    setIsEventWaitlist(view === "waitlist");
+    setIsEventWaitlistDetail(false); // luôn reset detail view
+    setIsUpdateEvent(false);
   };
 
   const categoriesEvent = [
@@ -181,7 +193,26 @@ const Admin = () => {
 
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
-
+    if (!formAdd.title?.trim()) {
+      toast.error("Title is required!");
+      return;
+    }
+    if (!formAdd.date) {
+      toast.error("Date is required!");
+      return;
+    }
+    if (!formAdd.location?.trim()) {
+      toast.error("Location is required!");
+      return;
+    }
+    if (!formAdd.capacity) {
+      toast.error("Capacity is required!");
+      return;
+    }
+    if (!formAdd.category) {
+      toast.error("Category is required!");
+      return;
+    }
     const formData = new FormData();
     formData.append("title", formAdd.title);
     formData.append("description", formAdd.description);
@@ -194,10 +225,15 @@ const Admin = () => {
     if (afterLogoImage) formData.append("logoImage", afterLogoImage);
     if (afterBackgroundImage)
       formData.append("backgroundImage", afterBackgroundImage);
+
     try {
       const response = await apiCreateEvent(formData);
+      console.log("API response:", response);
       if (response?.success) {
         toast.success("Create event successfully!");
+
+        // ✨ Đóng modal và reset form NGAY LẬP TỨC
+        handleCloseAddEvent();
         setFormAdd({
           title: "",
           description: "",
@@ -209,12 +245,19 @@ const Admin = () => {
           backgroundImage: "",
           logoImage: "",
         });
-        dispatch(fetchAllEvent());
+
+        // ✨ Gọi fetch sau cùng để tránh delay UI
+        setTimeout(() => {
+          dispatch(fetchAllEvent());
+        }, 0);
+      } else {
+        toast.error(
+          "Create event failed: " + (response.data?.message || "Unknown error")
+        );
       }
-      // Bạn có thể xử lý thêm nếu muốn, ví dụ reset form hoặc đóng modal
     } catch (error) {
       console.error(error);
-      // Xử lý lỗi tại đây (ví dụ: thông báo lỗi cho người dùng)
+      toast.error("Create event failed!");
     }
   };
 
@@ -386,8 +429,17 @@ const Admin = () => {
 
   const handleSubmitUpdate = async (e) => {
     e.preventDefault();
-
+    if (!initialUpd.date) {
+      toast.error("Date is required!");
+      return;
+    }
+    if (!initialUpd.endDate) {
+      toast.error("End Date is required!");
+      return;
+    }
     const formData = new FormData();
+    // 1) các trường text/number
+    formData.append("eid", idUpdateEvent);
     formData.append("title", initialUpd.title);
     formData.append("description", initialUpd.description);
     formData.append("date", initialUpd.date);
@@ -395,36 +447,49 @@ const Admin = () => {
     formData.append("location", initialUpd.location);
     formData.append("capacity", initialUpd.capacity);
     formData.append("category", initialUpd.category);
-    formData.append("speaker", initialUpd.speaker);
     formData.append("status", initialUpd.status);
-    formData.append("eid", idUpdateEvent);
 
-    formData.append("organizerUnit[name]", initialUpd.organizerUnit.name);
-    formData.append("organizerUnit[address]", initialUpd.organizerUnit.address);
-    formData.append(
-      "organizerUnit[contactInfo][phone]",
-      initialUpd.organizerUnit.contactInfo.phone
-    );
-    formData.append(
-      "organizerUnit[contactInfo][email]",
-      initialUpd.organizerUnit.contactInfo.email
-    );
-
-    // Kiểm tra nếu có ảnh mới được chọn, thì gửi file
-    if (updateImageBackground) {
-      formData.append("backgroundImage", updateImageBackground);
+    // 2) speakerIds: mỗi id đẩy một lần
+    if (Array.isArray(initialUpd.speaker)) {
+      initialUpd.speaker.forEach((id) => {
+        formData.append("speakerIds", id);
+      });
+    } else if (initialUpd.speaker) {
+      formData.append("speakerIds", initialUpd.speaker);
     }
+
+    // 3) organizerUnit gói làm 1 field JSON
+    formData.append(
+      "organizerUnit",
+      JSON.stringify({
+        name: initialUpd.organizerUnit?.name || "",
+        address: initialUpd.organizerUnit?.address || "",
+        contactInfo: {
+          phone: initialUpd.organizerUnit?.contactInfo?.phone || "",
+          email: initialUpd.organizerUnit?.contactInfo?.email || "",
+        },
+      })
+    );
+
+    // 4) Ảnh mới (nếu user chọn)
     if (updateImageLogo) {
       formData.append("logoImage", updateImageLogo);
+    }
+    if (updateImageBackground) {
+      formData.append("backgroundImage", updateImageBackground);
     }
 
     try {
       const response = await apiUpdateEvent(formData);
-      if (response?.success) {
+      if (response.success) {
         toast.success("Event updated successfully!");
-        dispatch(fetchAllEvent()); // Cập nhật danh sách sự kiện
+        dispatch(fetchAllEvent());
+        setIsUpdateEvent(false); // đóng form
+      } else {
+        toast.error("Update failed: " + (response.message || ""));
       }
-    } catch (error) {
+    } catch (err) {
+      console.error("UpdateEvent Error:", err);
       toast.error("Failed to update event");
     }
   };
@@ -432,19 +497,19 @@ const Admin = () => {
   const listDataFilter = Array.isArray(eventAll?.mess)
     ? [...eventAll?.mess]
     : [];
-  const listDataFilterDetail = Array.isArray( eventRegistantData?.attendees)
-    ? [... eventRegistantData?.attendees]
+  const listDataFilterDetail = Array.isArray(eventRegistantData?.attendees)
+    ? [...eventRegistantData?.attendees]
     : [];
 
-  
-    let afterFilterDetail = listDataFilterDetail?.filter((item) => {
-      
-      // const matchesStatusEvent =
-      // eventStatusFilterDetail === "all" || item?.eventstatus === eventStatusFilterDetail;
-      const matchesStatusUser =userStatusFilterDetail === "all" || item?.statusRegisEvent[0]?.status === userStatusFilterDetail;
-  
-      return matchesStatusUser ;
-    });
+  let afterFilterDetail = listDataFilterDetail?.filter((item) => {
+    // const matchesStatusEvent =
+    // eventStatusFilterDetail === "all" || item?.eventstatus === eventStatusFilterDetail;
+    const matchesStatusUser =
+      userStatusFilterDetail === "all" ||
+      item?.statusRegisEvent[0]?.status === userStatusFilterDetail;
+
+    return matchesStatusUser;
+  });
 
   let afterFilter = listDataFilter?.filter((item) => {
     const matchesCategory =
@@ -454,6 +519,15 @@ const Admin = () => {
 
     return matchesCategory && matchesStatusEvent;
   });
+
+  const formatDateEn = (isoDate) => {
+    if (!isoDate) return "N/A";
+    return new Date(isoDate).toLocaleDateString("en-US", {
+      month: "long", // April
+      day: "numeric", // 25
+      year: "numeric", // 2025
+    });
+  };
 
   const handleEventRegistant = async (eid) => {
     setIsEventList(false);
@@ -610,9 +684,9 @@ const Admin = () => {
                 </a>
                 <a
                   className="nav-link"
-                  onClick={() => handleSelectEvent("detail")}
+                  onClick={() => handleSelectEvent("waitlist")}
                 >
-                  Event Registrant
+                  Event Waitlist
                 </a>
               </div>
             )}
@@ -682,7 +756,7 @@ const Admin = () => {
             </div>
 
             {/* Table */}
-            {showModal && (
+            {isAddEventOpen && (
               <div
                 className="modal fade show"
                 tabIndex="-1"
@@ -700,7 +774,7 @@ const Admin = () => {
                         type="button"
                         className="btn-close"
                         aria-label="Close"
-                        onClick={() => setShowModal(false)}
+                        onClick={handleCloseAddEvent}
                       ></button>
                     </div>
                     <div className="modal-body">
@@ -714,7 +788,6 @@ const Admin = () => {
                             className="form-control"
                             name="title"
                             onChange={handleInputAdd}
-                            required
                           />
                         </div>
                         <div className="mb-3">
@@ -726,7 +799,6 @@ const Admin = () => {
                             id="description"
                             name="description"
                             onChange={handleInputAdd}
-                            required
                           />
                         </div>
                         <div className="mb-3">
@@ -739,7 +811,6 @@ const Admin = () => {
                             id="date"
                             name="date"
                             onChange={handleInputAdd}
-                            required
                           />
                         </div>
                         <div className="mb-3">
@@ -751,7 +822,6 @@ const Admin = () => {
                             className="form-control"
                             id="location"
                             name="location"
-                            required
                             onChange={handleInputAdd}
                           />
                         </div>
@@ -763,7 +833,9 @@ const Admin = () => {
                             onChange={handleInputAdd}
                             name="category"
                             className="form-select"
+                            value={formAdd.category}
                           >
+                            <option value="">Select Category</option>
                             {categoriesEvent?.map((item, index) => (
                               <option value={item} key={index}>
                                 {item}
@@ -839,7 +911,7 @@ const Admin = () => {
             )}
             <button
               className="btn btn-primary mb-3"
-              onClick={handleModalToggle}
+              onClick={handleOpenAddEvent}
             >
               Add Event
             </button>
@@ -870,8 +942,10 @@ const Admin = () => {
                       style={{ cursor: "pointer" }}
                     >
                       <td>{event?.title}</td>
-                      <td>{new Date(event?.date).toDateString()}</td>
-                      <td>{event?.endDate || "N/A"}</td>
+                      <td>{formatDateEn(event?.date)}</td>
+                      <td>
+                        {event?.endDate ? formatDateEn(event.endDate) : "N/A"}
+                      </td>
                       <td>{event?.location || "N/A"}</td>
 
                       <td>
@@ -912,19 +986,19 @@ const Admin = () => {
                         <div className="d-flex gap-2">
                           <button
                             className="btn btn-primary btn-sm"
-                            onClick={(e) =>{
+                            onClick={(e) => {
                               e.stopPropagation(); // Ngăn sự kiện truyền lên thẻ <tr>
-                              handleOpenUpdateEvent(event?._id)
+                              handleOpenUpdateEvent(event?._id);
                             }}
                           >
                             Update
                           </button>
-                         
+
                           <button
                             className="btn btn-danger btn-sm"
-                            onClick={(e) =>{
+                            onClick={(e) => {
                               e.stopPropagation(); // Ngăn sự kiện truyền lên thẻ <tr>
-                              handleDeletedEvent(event?._id)
+                              handleDeletedEvent(event?._id);
                             }}
                           >
                             Delete
@@ -965,7 +1039,7 @@ const Admin = () => {
 
                 <select
                   className="form-select w-auto"
-                   value={userStatusFilterDetail}
+                  value={userStatusFilterDetail}
                   onChange={(e) => setUserStatusFilterDetail(e.target.value)}
                 >
                   <option value="all">All User Status</option>
@@ -1015,21 +1089,21 @@ const Admin = () => {
                         </span>
                       </td>
                       <td>
-                        {attendee.statusRegisEvent?.map(
-                          (status, statusIndex) => (
-                            <span
-                              key={statusIndex}
-                              className={`badge bg-${
-                                status.status === "pending"
-                                  ? "secondary"
-                                  : status.status === "confirmed"
-                                  ? "success"
-                                  : "danger"
-                              }`}
-                            >
-                              {status.status}
-                            </span>
-                          )
+                        {attendee.statusRegisEvent?.[0]?.status ? (
+                          <span
+                            className={`badge bg-${
+                              attendee.statusRegisEvent[0].status === "pending"
+                                ? "secondary"
+                                : attendee.statusRegisEvent[0].status ===
+                                  "confirmed"
+                                ? "success"
+                                : "danger"
+                            }`}
+                          >
+                            {attendee.statusRegisEvent[0].status}
+                          </span>
+                        ) : (
+                          <span className="badge bg-secondary">pending</span>
                         )}
                       </td>
                       <td>
@@ -1153,6 +1227,130 @@ const Admin = () => {
             )}
 
             {isModalOpen && <div className="modal-backdrop fade show"></div>}
+          </div>
+        )}
+
+        {isEventWaitlist && (
+          <div>
+            <h3>Event Waitlist</h3>
+            <table className="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Attendees/Capacity</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eventAll.mess
+                  .filter((ev) => (ev.attendees?.length || 0) >= ev.capacity)
+                  .map((ev) => (
+                    <tr
+                      key={ev._id}
+                      style={{ cursor: "pointer" }}
+                      onClick={async () => {
+                        // load chi tiết waitlist
+                        setIsEventWaitlistDetail(true);
+                        setIsEventWaitlist(false);
+                        const res = await apiGetEventById(ev._id);
+                        setEventRegistantData(res.mess);
+                      }}
+                    >
+                      <td>{ev.title}</td>
+                      <td>
+                        {ev.attendees.length}/{ev.capacity}
+                      </td>
+                      <td>
+                        <button className="btn btn-sm btn-warning">
+                          View Waitlist
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+            <button
+              className="btn btn-secondary mt-3"
+              onClick={() => {
+                setIsEventWaitlist(false);
+                setIsEventList(true);
+              }}
+            >
+              Back to Event List
+            </button>
+          </div>
+        )}
+
+        {/* === 4) Chi tiết Waitlist của 1 event === */}
+        {isEventWaitlistDetail && eventRegistantData && (
+          <div>
+            <h3>
+              Waitlist for “{eventRegistantData.title}”
+              <small className="text-muted">
+                ({eventRegistantData.attendees.length}/
+                {eventRegistantData.capacity})
+              </small>
+            </h3>
+            <h5 className="mt-4">
+              Users on Waitlist ({eventRegistantData.waitlist?.length || 0})
+            </h5>
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>User ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eventRegistantData.waitlist?.map((user, i) => (
+                  <tr key={i}>
+                    <td>{i + 1}</td>
+                    <td>{user._id}</td>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="d-flex align-items-center mt-2">
+              <input
+                type="number"
+                className="form-control w-auto me-2"
+                placeholder="Extra slots"
+                value={extraSlots}
+                onChange={(e) => setExtraSlots(e.target.value)}
+              />
+              <button
+                className="btn btn-success"
+                onClick={async () => {
+                  await apiOpenSpots(eventRegistantData._id, extraSlots);
+                  // 1) Lấy chi tiết registration có đầy đủ status
+                  const res = await apiEventRegistantDetail(
+                    eventRegistantData._id
+                  );
+                  setEventRegistantData(res.mess);
+                  // 2) Chuyển về màn hình Event Detail
+                  setIsEventWaitlistDetail(false);
+                  setIsEventDetail(true);
+                  setModalFilterDetailEvent(true);
+                  setExtraSlots("");
+                  toast.success(`Added ${extraSlots} slots`);
+                }}
+              >
+                Open Slots
+              </button>
+            </div>
+            <button
+              className="btn btn-secondary mt-3"
+              onClick={() => {
+                setIsEventWaitlistDetail(false);
+                setIsEventWaitlist(true);
+              }}
+            >
+              Back to Waitlist
+            </button>
           </div>
         )}
 
