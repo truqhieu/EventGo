@@ -19,14 +19,7 @@ var eventSchema = new mongoose.Schema(
         email: { type: String }, // Email liên lạc của đơn vị
       },
     },
-    // guests: [
-    //   {
-    //     name: { type: String, required: true },
-    //     email: { type: String, required: true },
-    //     status: { type: String, enum: ["pending", "confirmed"], default: "pending" },
-    //     registeredAt: { type: Date, default: Date.now },
-    //   },
-    // ], // Người tham gia không có tài khoản
+
     category: {
       type: String,
       enum: [
@@ -44,6 +37,8 @@ var eventSchema = new mongoose.Schema(
     views: { type: Number, default: 0 },
     capacity: { type: Number, required: true },
     attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    waitlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // ← thêm
+
     backgroundImage: { type: String },
     logoImage: { type: String },
     status: {
