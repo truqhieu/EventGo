@@ -13,7 +13,7 @@ import EventWaitList from "../event/EventWaitList";
 import EventWaitlistDetail from "../event/EventWaitlistDetail";
 import UpdateEvent from "../event/UpdateEvent";
 
-const Admin = () => {
+const Staff = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -165,7 +165,7 @@ const Admin = () => {
               style={{ width: '150px' }}
             >
               <option value="" disabled hidden>
-                Admin
+                Staff
               </option>
               <option value="logout" className="text-danger">
                 Logout
@@ -229,4 +229,4 @@ const Admin = () => {
   );
 };
 
-export default Admin;
+export default Staff;
