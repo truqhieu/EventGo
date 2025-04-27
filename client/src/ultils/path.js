@@ -7,7 +7,9 @@ const path={
     Event:'/event',
     DetailEvent:'/detailevent/:eid',
     FinalRegister:'/finalregister/:token',
-    Admin:'/admin'
+    Admin:'/admin',
+    User:'/user',
+    Staff:'/staff'
 }
 
 

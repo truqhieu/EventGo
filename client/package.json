@@ -8,9 +8,10 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.7.9",
+    "axios": "^1.9.0",
     "bootstrap": "^5.3.3",
     "cors": "^2.8.5",
+    "cra-to-react-vite": "^1.0.5",
     "font-awesome": "^4.7.0",
     "jquery": "^3.7.1",
     "jquery.countdown": "^1.2.8",
@@ -19,12 +20,13 @@
     "magnific-popup": "^1.2.0",
     "owl.carousel": "^2.3.4",
     "react": "^19.0.0",
+    "react-bootstrap": "^2.10.9",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.54.2",
     "react-icons": "^5.5.0",
     "react-loader-spinner": "^6.1.6",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^7.2.0",
+    "react-router-dom": "^7.5.2",
     "react-scripts": "5.0.1",
     "react-toastify": "^11.0.3",
     "redux-persist": "^6.0.0",
@@ -39,7 +41,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "vite:start": "vite",
+    "vite:build": "vite build"
   },
   "eslintConfig": {
     "extends": [
@@ -58,5 +62,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "vite": "^6.3.3"
   }
 }

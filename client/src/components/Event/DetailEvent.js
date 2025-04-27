@@ -3,9 +3,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   apiDeleteFeedback,
   apiEventRegistation,
+  apiEventRegistration,
   apiFeedbackComment,
   apiGetEventByCategoryName,
   apiGetEventById,
+  apiJoinWaitlist,
   apiReplyFeedbackComment,
   apiUpdateFeedback,
 } from "../../apis/event/event";
@@ -79,32 +81,69 @@ const DetailEvent = () => {
 
   // };
   const handleRegisEvent = async (eid) => {
-    if (isLogged && accessToken) {
-      try {
-        setLoading(true); // Bắt đầu loading
-        const response = await apiEventRegistation(eid);
-        console.log(response);
+    if (!isLogged || !accessToken) {
+      await swal("ERROR", "Bạn cần đăng nhập để đăng ký", "error");
+      return navigate("/login", { state: { eid } });
+    }
 
-        if (response?.success) {
-          swal("SUCCESS", "Bạn đã đăng kí sự kiện thành công", "success");
-        }
-      } catch (error) {
-        swal("Error", `${error?.response?.data?.mess}`, "error");
-      } finally {
-        setLoading(false); // Kết thúc loading dù thành công hay thất bại
-      }
-    } else {
-      swal(
-        "ERROR",
-        "Bạn cần đăng nhập để có thể đăng kí sự kiện này",
-        "error"
-      ).then(() => {
-        // In the component where you are navigating
-        navigate("/login", { state: { eid } });
+    // nếu đã load detailEvent thành công, bạn có thể local-check:
+    if (detailEvent.attendees?.length >= detailEvent.capacity) {
+      // show prompt ngay lập tức
+      const join = await swal({
+        title: "Sự kiện đã đầy!",
+        text: "Bạn có muốn vào danh sách chờ không?",
+        icon: "warning",
+        buttons: ["Không", "Có"],
       });
+      if (!join) return;
+      try {
+        await apiJoinWaitlist(eid, user._id);
+        return swal("OK", "Bạn đã được thêm vào danh sách chờ", "success");
+      } catch (e) {
+        return swal("Error", e.response?.data?.mess || "Lỗi", "error");
+      }
+    }
+
+    // Nếu vẫn còn slot
+    try {
+      setLoading(true);
+      const res = await apiEventRegistation(eid);
+      console.log("Res after registration:", res.data);
+      if (res.data) {
+        await swal("SUCCESS", "Bạn đã đăng ký thành công", "success"); // nạp lại detailEvent để cập nhật số lượng
+      }
+      try {
+        const fresh = await apiGetEventById(eid);
+        setDetailEvent(fresh.data.mess);
+      } catch (error) {
+        console.error("Fetch event detail failed", error);
+        // Optional: show một warning nhẹ thôi, đừng swal error to
+      }
+    } catch (err) {
+      const errData = err.response?.data;
+      if (errData?.full) {
+        // backend báo full, nhưng bạn đã local-check, hầu như ko xảy ra
+        const join = await swal({
+          title: "Sự kiện đã đầy!",
+          text: "Bạn có muốn vào danh sách chờ không?",
+          icon: "warning",
+          buttons: ["Không", "Có"],
+        });
+        if (join) {
+          try {
+            await apiJoinWaitlist(eid, user._id);
+            swal("OK", "Bạn đã được thêm vào danh sách chờ", "success");
+          } catch (e) {
+            swal("Error", e.response?.data?.mess || "Lỗi", "error");
+          }
+        }
+      } else {
+        swal("Error", errData?.mess || "Đăng ký thất bại", "error");
+      }
+    } finally {
+      setLoading(false);
     }
   };
-
   const [comment, setComment] = useState("");
   const handleInputChange = (e) => {
     setComment(e.target.value);
@@ -431,7 +470,6 @@ const DetailEvent = () => {
                                       style={{
                                         right: 0,
                                         top: "-20%",
-                                        right: "80%",
                                       }}
                                     >
                                       {editingFeedbackId === item._id ? (

@@ -2,19 +2,18 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import "./Admin.css";
+import "../admin/Admin.css";
 import { fetchAllEvent } from "../../../reducer/eventReducer";
 import { toast } from "react-toastify";
 import { fetchDataSpeaker } from "../../../reducer/speakerReducer";
 import UserManage from "../userManage/UserManage";
-import StaffManage from "../userManage/StaffManage";
 import EventList from "../event/EventList";
 import EventDetail from "../event/EventDetail";
 import EventWaitList from "../event/EventWaitList";
 import EventWaitlistDetail from "../event/EventWaitlistDetail";
 import UpdateEvent from "../event/UpdateEvent";
 
-const Admin = () => {
+const Staff = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -32,7 +31,6 @@ const Admin = () => {
   const [isUserList, setIsUserList] = useState(false);
   const [isStaffList, setIsStaffList] = useState(false);
   const [idUpdateEvent, setIdUpdateEvent] = useState(null);
-
   const [initialUpd, setInitialUpd] = useState({
     title: '',
     description: '',
@@ -123,9 +121,7 @@ const Admin = () => {
                 <a className="nav-link" onClick={() => handleSelectUser('userList')}>
                   User List
                 </a>
-                <a className="nav-link" onClick={() => handleSelectUser('staffList')}>
-                  Staff List
-                </a>
+
               </div>
             )}
           </div>
@@ -169,7 +165,7 @@ const Admin = () => {
               style={{ width: '150px' }}
             >
               <option value="" disabled hidden>
-                Admin
+                Staff
               </option>
               <option value="logout" className="text-danger">
                 Logout
@@ -228,10 +224,9 @@ const Admin = () => {
 
         {isUserList && <UserManage />}
 
-        {isStaffList && <StaffManage />}
       </div>
     </div>
   );
 };
 
-export default Admin;
+export default Staff;

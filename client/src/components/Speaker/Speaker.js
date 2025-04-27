@@ -35,7 +35,7 @@ const Speaker = () => {
       <section className="speaker-section spad">
         <div className="container">
           <div className="row">
-            {dataSpeakerAll.map((el, index) => (
+            {dataSpeakerAll?.map((el, index) => (
               <div className="col-sm-6">
                 <div className="speaker-item">
                   <div className="row">

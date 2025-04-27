@@ -11,9 +11,15 @@ const userSchema = new mongoose.Schema(
     profileImage: { type: String },
     role: {
       type: String,
-      enum: ["User", "Admin"],
+      enum: ["User", "Admin", "Staff"],
       default: "User",
     },
+    assignedEvents: [ // Trường để lưu các sự kiện được giao
+      {
+        event: { type: mongoose.Schema.Types.ObjectId, ref: "Event" },
+        assignedAt: { type: Date, default: Date.now },
+      },
+    ],
     eventsAttended: [
       {
         event: { type: mongoose.Schema.Types.ObjectId, ref: "Event" },

@@ -2,41 +2,67 @@ const Event = require("../models/event");
 const User = require("../models/user");
 const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
-const event = require("../models/event");
 
 const createEvent = asyncHandler(async (req, res) => {
-  // const { _id } = req.user; // Lấy ID người dùng từ req.user
+  const { title, description, date, location, capacity, category } = req.body;
 
-  const { title, description, date, location, capacity } = req.body;
-  // Kiểm tra các trường bắt buộc
-  if (!title || !description || !date || !location || !capacity) {
-    throw new Error("Missing input to create Event");
+  if (
+    !title ||
+    !description ||
+    !date ||
+    !location ||
+    capacity == null ||
+    !category
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing input to create Event" });
   }
-  let logoImageURL = null;
-  let backgroundImageURL = null;
-  if (req.files?.logoImage && req?.files?.logoImage?.length > 0) {
-    logoImageURL = req.files.logoImage[0].path;
+
+  const capacityNum = parseInt(capacity, 10);
+  if (isNaN(capacityNum) || capacityNum <= 0) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid capacity number" });
   }
-  if (req?.files?.backgroundImage && req?.files?.backgroundImage?.length > 0) {
-    backgroundImageURL = req.files?.backgroundImage[0]?.path;
-  }
+
   const eventDate = new Date(date);
   if (isNaN(eventDate.getTime())) {
-    throw new Error("Invalid date format");
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid date format" });
   }
-  const dataAdd = {
-    ...req.body,
+
+  let logoImageURL = req.files?.logoImage?.[0]?.path || null;
+  let backgroundImageURL = req.files?.backgroundImage?.[0]?.path || null;
+
+  const newEventData = {
+    title,
+    description,
     date: eventDate,
-    // organizer: _id,
+    location,
+    category,
+    capacity: capacityNum,
     logoImage: logoImageURL,
     backgroundImage: backgroundImageURL,
+    // organizer: req.user._id, // nếu bạn cần
   };
-  const response = await Event.create(dataAdd);
 
-  return res.status(200).json({
-    success: response ? true : false,
-    message: response ? response : "Failed to create event",
-  });
+  try {
+    const createdEvent = await Event.create(newEventData);
+    return res.status(201).json({
+      success: true,
+      message: "Event created successfully",
+      data: createdEvent,
+    });
+  } catch (error) {
+    console.error("Error creating event:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while creating event",
+      error: error.message,
+    });
+  }
 });
 
 const createManyEvent = asyncHandler(async (req, res) => {
@@ -77,79 +103,115 @@ const createManyEvent = asyncHandler(async (req, res) => {
 });
 
 const updateEvent = asyncHandler(async (req, res) => {
-  // const { eid } = req.params;
-  const {
-    title,
-    description,
-    date,
-    location,
-    capacity,
-    organizerUnit,
-    category,
-    speakerIds,
-    eid,
-  } = req.body;
+  try {
+    console.log(">>> [updateEvent] req.body:", req.body);
+    console.log(">>> [updateEvent] req.files:", req.files);
 
-  const event = await Event.findById(eid);
-  if (!event) {
-    return res.status(404).json({
-      success: false,
-      mess: "Event not found",
-    });
-  }
+    // 1) Lấy dữ liệu từ client
+    const {
+      eid,
+      title,
+      description,
+      date,
+      endDate,
+      location,
+      capacity,
+      category,
+      status,
+      speakerIds,
+    } = req.body;
 
-  event.title = title || event.title;
-  event.description = description || event.description;
+    if (!eid) {
+      return res
+        .status(400)
+        .json({ success: false, mess: "Missing event ID (eid)" });
+    }
 
-  event.date = date ? new Date(date + "T00:00:00Z") : event.date; // Đảm bảo giờ là 00:00:00 UTC cho 'date'
-  event.endDate = req.body.endDate
-    ? new Date(req.body.endDate + "T00:00:00Z")
-    : event?.endDate; // Đảm bảo giờ là 00:00:00 UTC cho 'endDate'
+    // 2) Tìm event trong DB
+    const event = await Event.findById(eid);
+    if (!event) {
+      return res.status(404).json({ success: false, mess: "Event not found" });
+    }
 
-  if (req.files?.logoImage && req?.files?.logoImage?.length > 0) {
-    event.logoImage = req.files.logoImage[0].path;
-  }
-  if (req?.files?.backgroundImage && req?.files?.backgroundImage?.length > 0) {
-    event.backgroundImage = req.files?.backgroundImage[0]?.path;
-  }
+    // 3) Cập nhật các trường đơn giản nếu client gửi
+    if (title !== undefined) event.title = title;
+    if (description !== undefined) event.description = description;
+    if (date && !isNaN(new Date(date + "T00:00:00Z"))) {
+      event.date = new Date(date + "T00:00:00Z");
+    }
+    if (endDate && !isNaN(new Date(endDate + "T00:00:00Z"))) {
+      event.endDate = new Date(endDate + "T00:00:00Z");
+    }
+    if (location !== undefined) event.location = location;
+    if (capacity !== undefined) event.capacity = capacity; // Mongoose tự cast string->number
+    if (category !== undefined) event.category = category;
+    if (status !== undefined) event.status = status;
 
-  event.location = location || event.location;
-  event.capacity = capacity || event.capacity;
-  event.category = category || event.category;
-  event.status = req.body.status || event.status;
-  if (organizerUnit) {
-    const { name, address, contactInfo } = req.body.organizerUnit;
-    const { phone, email } = contactInfo;
-    event.organizerUnit = {
-      name: name || event.organizerUnit.name,
-      address: address || event.organizerUnit.address,
-      contactInfo: {
-        phone: phone || event.organizerUnit.contactInfo.phone,
-        email: email || event.organizerUnit.contactInfo.email,
-      },
-    };
-  }
+    // 4) Cập nhật ảnh upload nếu có
+    if (req.files?.logoImage?.[0]) {
+      event.logoImage = req.files.logoImage[0].path;
+    }
+    if (req.files?.backgroundImage?.[0]) {
+      event.backgroundImage = req.files.backgroundImage[0].path;
+    }
 
-  if (speakerIds) {
-    const newSpeaker = speakerIds?.filter(
-      (el) => !event?.speaker?.some((item) => item.toString() === el)
-    );
+    // 5) Parse & cập nhật nested organizerUnit
+    if (req.body.organizerUnit) {
+      try {
+        const unit = JSON.parse(req.body.organizerUnit);
+        event.organizerUnit = {
+          name: unit.name ?? event.organizerUnit?.name ?? "",
+          address: unit.address ?? event.organizerUnit?.address ?? "",
+          contactInfo: {
+            phone:
+              unit.contactInfo?.phone ??
+              event.organizerUnit?.contactInfo?.phone ??
+              "",
+            email:
+              unit.contactInfo?.email ??
+              event.organizerUnit?.contactInfo?.email ??
+              "",
+          },
+        };
+      } catch (err) {
+        console.error("❌ Invalid organizerUnit JSON:", err);
 
-    if (newSpeaker.length > 0) {
-      event.speaker.push(...newSpeaker); //...speaker để tránh bị push mảng lồng vào mảng
-    } else {
-      return res.status(400).json({
-        success: false,
-        mess: "All speaker has been existed",
+        return res
+          .status(400)
+          .json({ success: false, mess: "Invalid organizerUnit format" });
+      }
+    }
+
+    // 6) Parse & merge speakerIds
+    if (speakerIds) {
+      const arr = Array.isArray(speakerIds) ? speakerIds : [speakerIds];
+      event.speaker = event.speaker || [];
+      const existing = new Set(event.speaker.map((id) => id.toString()));
+      arr.forEach((id) => {
+        if (!existing.has(id)) {
+          event.speaker.push(new mongoose.Types.ObjectId(id)); // <<< ép thành ObjectId
+          existing.add(id);
+        }
       });
     }
+
+    // 7) Lưu vào DB và trả kết quả
+    const updated = await event.save();
+    return res.status(200).json({
+      success: true,
+      message: "Event updated successfully",
+      data: updated,
+    });
+  } catch (err) {
+    console.error("❌ Unexpected error in updateEvent:", err);
+    console.error("❌ Unexpected error in updateEvent:", err);
+    console.error("❌ Error message:", err.message);
+    console.error("❌ Error stack:", err.stack);
+    return res.status(500).json({
+      success: false,
+      mess: "Internal server error",
+    });
   }
-  const updateEvent = await event.save();
-  return res.status(200).json({
-    success: true,
-    message: "Event updated successfully",
-    data: updateEvent,
-  });
 });
 
 const deleteEvent = asyncHandler(async (req, res) => {
@@ -405,14 +467,14 @@ const getEventById = asyncHandler(async (req, res) => {
     .populate({
       path: "feedback.replies.adminId",
       select: "name", // Lấy tên admin đã phản hồi
-    });
+    })
+    .populate("waitlist", "name email");
 
   return res.status(200).json({
     success: response ? true : false,
     mess: response ? response : "Can not found Event!!!",
   });
 });
-
 
 const getEventByCategoryName = asyncHandler(async (req, res) => {
   const { category } = req.query;
@@ -470,6 +532,59 @@ const getEventByCategoryName = asyncHandler(async (req, res) => {
 //     mess: result,
 //   });
 // });
+
+const registerOrWaitlist = asyncHandler(async (req, res) => {
+  const { eventId, userId } = req.body;
+  const event = await Event.findById(eventId);
+  if (!event)
+    return res.status(404).json({ success: false, mess: "Event not found" });
+
+  // đã registered hoặc chờ rồi
+  if (event.attendees.includes(userId) || event.waitlist.includes(userId)) {
+    return res
+      .status(400)
+      .json({ success: false, mess: "Already booked or waitlisted" });
+  }
+
+  if (event.attendees.length < event.capacity) {
+    event.attendees.push(userId);
+    await event.save();
+    return res.json({
+      success: true,
+      confirmed: true,
+      mess: "Booked successfully",
+    });
+  } else {
+    // hết chỗ → waitlist
+    return res.status(400).json({
+      success: false,
+      full: true,
+      mess: "Event is full",
+    });
+  }
+});
+
+const joinWaitList = asyncHandler(async (req, res) => {
+  const { eventId, userId } = req.body;
+  const event = await Event.findById(eventId);
+  if (!event)
+    return res.status(404).json({ success: false, mess: "Event not found" });
+
+  if (event.attendees.includes(userId) || event.waitlist.includes(userId)) {
+    return res
+      .status(400)
+      .json({ success: false, mess: "Already booked or waitlisted" });
+  }
+
+  event.waitlist.push(userId);
+  await event.save();
+  return res.json({
+    success: true,
+    waitlisted: true,
+    mess: "Added to waitlist",
+  });
+});
+
 const getHotestEvent = asyncHandler(async (req, res) => {
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -618,7 +733,7 @@ const feedbackComment = asyncHandler(async (req, res) => {
 
 const replyFeedbackComment = asyncHandler(async (req, res) => {
   try {
-    const {eventId,feedbackId, replyComment } = req.body;
+    const { eventId, feedbackId, replyComment } = req.body;
 
     // console.log(eventId,feedbackId, replyComment);
     const { _id } = req.user;
@@ -653,7 +768,6 @@ const replyFeedbackComment = asyncHandler(async (req, res) => {
   }
 });
 
-
 const updateFeedback = asyncHandler(async (req, res) => {
   try {
     const { eventId, feedbackId, feedbackComment } = req.body;
@@ -670,7 +784,9 @@ const updateFeedback = asyncHandler(async (req, res) => {
     }
 
     // Tìm feedback trong Event
-    const feedbackIndex = event.feedback.findIndex((fb) => fb._id.toString() === feedbackId);
+    const feedbackIndex = event.feedback.findIndex(
+      (fb) => fb._id.toString() === feedbackId
+    );
     if (feedbackIndex === -1) {
       return res.status(404).json({ message: "Feedback not found in event" });
     }
@@ -679,7 +795,9 @@ const updateFeedback = asyncHandler(async (req, res) => {
 
     // Kiểm tra quyền sở hữu
     if (feedback.userId.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "Unauthorized to modify this feedback" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to modify this feedback" });
     }
 
     // Cập nhật feedback trong Event
@@ -689,12 +807,15 @@ const updateFeedback = asyncHandler(async (req, res) => {
     // Lưu thay đổi vào DB
     await event.save();
 
-    res.status(200).json({ message: "Feedback updated successfully", feedback });
+    res
+      .status(200)
+      .json({ message: "Feedback updated successfully", feedback });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 });
-
 
 const deleteFeedback = asyncHandler(async (req, res) => {
   try {
@@ -708,7 +829,9 @@ const deleteFeedback = asyncHandler(async (req, res) => {
     }
 
     // Tìm feedback trong Event
-    const feedbackIndex = event.feedback.findIndex((fb) => fb._id.toString() === feedbackId);
+    const feedbackIndex = event.feedback.findIndex(
+      (fb) => fb._id.toString() === feedbackId
+    );
     if (feedbackIndex === -1) {
       return res.status(404).json({ message: "Feedback not found in event" });
     }
@@ -717,7 +840,9 @@ const deleteFeedback = asyncHandler(async (req, res) => {
 
     // Kiểm tra quyền sở hữu
     if (feedback.userId.toString() !== userId.toString()) {
-      return res.status(403).json({ message: "Unauthorized to delete this feedback" });
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to delete this feedback" });
     }
 
     // Xóa feedback khỏi mảng
@@ -728,10 +853,45 @@ const deleteFeedback = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: "Feedback deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
   }
 });
 
+const openSpots = asyncHandler(async (req, res) => {
+  const { eventId, extra } = req.body;
+  const event = await Event.findById(eventId);
+  if (!event)
+    return res.status(404).json({ success: false, mess: "Event not found" });
+  const before = event.attendees.length;
+
+  event.capacity += Number(extra);
+  // tự động promote từ waitlist nếu có
+  while (event.attendees.length < event.capacity && event.waitlist.length) {
+    const userId = event.waitlist.shift();
+    event.attendees.push(userId);
+  }
+  await event.save();
+  const promoted = event.attendees.slice(before);
+  await Promise.all(
+    promoted.map((uid) =>
+      User.findByIdAndUpdate(uid, {
+        $push: {
+          eventsAttended: {
+            event: event._id,
+            status: "pending",
+            registeredAt: new Date(),
+          },
+        },
+      })
+    )
+  );
+  res.json({
+    success: true,
+    mess: `Added ${extra} spots, promoted users if any`,
+  });
+});
 
 module.exports = {
   createEvent,
@@ -748,8 +908,10 @@ module.exports = {
   getEventByCategoryName,
   feedbackComment,
   getHotestEvent,
-
+  joinWaitList,
+  registerOrWaitlist,
   replyFeedbackComment,
   deleteFeedback,
-  updateFeedback
+  updateFeedback,
+  openSpots,
 };

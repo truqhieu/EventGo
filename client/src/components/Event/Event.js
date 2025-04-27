@@ -14,10 +14,11 @@ const Event = () => {
         setLoading(true);
         // Lấy tất cả sự kiện từ API
         const response = await axios.get("http://localhost:9999/api/event");
-        
+
         // Handle different possible response structures
-        const eventsData = response.data?.data || response.data?.mess || response.data;
-        
+        const eventsData =
+          response.data?.data || response.data?.mess || response.data;
+
         if (Array.isArray(eventsData)) {
           setEvents(eventsData);
         } else {
@@ -36,15 +37,30 @@ const Event = () => {
   // Hàm kiểm tra xem user đã đăng ký sự kiện chưa
   const checkRegistration = (event) => {
     if (!user || !event?.attendees) return false;
-    return event.attendees.some(attendee => 
-      attendee._id ? attendee._id.toString() === user._id.toString() : 
-      attendee.toString() === user._id.toString()
+    return event.attendees.some((attendee) =>
+      attendee._id
+        ? attendee._id.toString() === user._id.toString()
+        : attendee.toString() === user._id.toString()
     );
   };
+  const isRegistered = (evt) =>
+    user &&
+    Array.isArray(evt.attendees) &&
+    evt.attendees.some(
+      (a) => (a._id ? a._id.toString() : a.toString()) === user._id.toString()
+    );
 
+  const isWaitlisted = (evt) =>
+    user &&
+    Array.isArray(evt.waitlist) &&
+    evt.waitlist.some(
+      (w) => (w._id ? w._id.toString() : w.toString()) === user._id.toString()
+    );
   if (loading) return <div className="text-center py-5">Loading events...</div>;
-  if (error) return <div className="text-center py-5 text-danger">Error: {error}</div>;
-  if (!Array.isArray(events) || events.length === 0) return <div className="text-center py-5">No events available</div>;
+  if (error)
+    return <div className="text-center py-5 text-danger">Error: {error}</div>;
+  if (!Array.isArray(events) || events.length === 0)
+    return <div className="text-center py-5">No events available</div>;
 
   // Chia sự kiện thành 2 cột - only if events is an array
   const leftColumnEvents = events.slice(0, Math.ceil(events.length / 2));
@@ -70,14 +86,26 @@ const Event = () => {
             {/* Cột trái */}
             <div className="col-lg-6">
               {leftColumnEvents.map((event) => (
-                <EventCard key={event._id} event={event} user={user} checkRegistration={checkRegistration} />
+                <EventCard
+                  key={event._id}
+                  event={event}
+                  user={user}
+                  checkRegistration={checkRegistration}
+                  waitlisted={isWaitlisted(event)}
+                />
               ))}
             </div>
 
             {/* Cột phải */}
             <div className="col-lg-6">
               {rightColumnEvents.map((event) => (
-                <EventCard key={event._id} event={event} user={user} checkRegistration={checkRegistration} />
+                <EventCard
+                  key={event._id}
+                  event={event}
+                  user={user}
+                  checkRegistration={checkRegistration}
+                  waitlisted={isWaitlisted(event)}
+                />
               ))}
             </div>
           </div>
@@ -88,20 +116,20 @@ const Event = () => {
 };
 
 // Separate component for event card to reduce duplication
-const EventCard = ({ event, user, checkRegistration }) => (
+const EventCard = ({ event, user, checkRegistration, waitlisted }) => (
   <div
     className="blog-item"
     style={{
-      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${event.backgroundImage || 'https://via.placeholder.com/800x500'})`,
+      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${
+        event.backgroundImage || "https://via.placeholder.com/800x500"
+      })`,
       backgroundSize: "cover",
       backgroundPosition: "center",
       marginBottom: "30px",
-      minHeight: "300px"
+      minHeight: "300px",
     }}
   >
-    <div className="bi-tag bg-gradient">
-      {event.category}
-    </div>
+    <div className="bi-tag bg-gradient">{event.category}</div>
     <div className="bi-text">
       <h3>
         <a href={`/detailevent/${event._id}`} className="text-white">
@@ -114,11 +142,21 @@ const EventCard = ({ event, user, checkRegistration }) => (
       </span>
       <p className="text-light">{event.location}</p>
       {user && (
-        <span 
-          className={`badge ${checkRegistration(event) ? 'bg-success' : 'bg-secondary'}`}
-          style={{ fontSize: '0.9rem' }}
+        <span
+          className={`badge ${
+            checkRegistration(event)
+              ? "bg-success"
+              : waitlisted
+              ? "bg-warning text-dark"
+              : "bg-secondary"
+          }`}
+          style={{ fontSize: "0.9rem" }}
         >
-          {checkRegistration(event) ? 'Registered' : 'Not registered'}
+          {checkRegistration(event)
+            ? "Registered"
+            : waitlisted
+            ? "Waitlisted"
+            : "Not registered"}
         </span>
       )}
     </div>
