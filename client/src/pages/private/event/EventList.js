@@ -13,7 +13,8 @@ import {
 } from "../../../apis/event/event";
 import { fetchAllEvent } from '../../../reducer/eventReducer';
 
-const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList }) => {
+const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList, setIsEventDetail,
+    setEventRegistantData, }) => {
 
     const dispatch = useDispatch();
 
@@ -24,9 +25,7 @@ const EventList = ({ setIsUpdateEvent, setIdUpdateEvent, setIsEventList }) => {
     const [isAddEventOpen, setIsAddEventOpen] = useState(false);
     const [afterLogoImage, setAfterLogoImage] = useState(null);
     const [afterBackgroundImage, setAfterBackgroundImage] = useState(null);
-    const [isEventDetail, setIsEventDetail] = useState(false);
     const [modalFilterDetailEvent, setModalFilterDetailEvent] = useState(false);
-    const [eventRegistantData, setEventRegistantData] = useState(null);
 
     const handleCloseAddEvent = () => setIsAddEventOpen(false);
     const handleOpenAddEvent = () => setIsAddEventOpen(true);

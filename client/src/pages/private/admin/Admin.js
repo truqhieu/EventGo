@@ -32,6 +32,7 @@ const Admin = () => {
   const [isUserList, setIsUserList] = useState(false);
   const [isStaffList, setIsStaffList] = useState(false);
   const [idUpdateEvent, setIdUpdateEvent] = useState(null);
+
   const [initialUpd, setInitialUpd] = useState({
     title: '',
     description: '',
