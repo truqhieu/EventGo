@@ -44,6 +44,8 @@ const Navbar = () => {
       handleLogout();
     } else if (value === "profile") {
       navigate("/profile");
+    } else if (value === "event-registered") {
+      navigate("/event-registered");
     }
   };
 
@@ -71,7 +73,7 @@ const Navbar = () => {
           <div className="logo">
             <a href="/">
               <img
-                src="https://ticketgo.vn/images/ticketgo/logo3.png"
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfyDDAElY58f-mmrhgncjex7NoK7VAvL-DvQ&s"
                 alt=""
                 style={{ height: "50px" }}
               />
@@ -107,13 +109,14 @@ const Navbar = () => {
               </ul>
             </nav>
             {isLogged ? (
-              <select
+              <select style={{ color: "black" }}
                 className="primary-btn top-btn"
                 onChange={handleSelectDropdownChange}
                 aria-label="User Menu"
               >
                 <option value="">Hello {user?.name}</option>
                 <option value="profile">Profile</option>
+                <option value="event-registered">Event Registered</option>
                 <option value="setting">Settings</option>
                 <option value="logout">Logout</option>
               </select>

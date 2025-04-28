@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   apiDeleteFeedback,
   apiEventRegistation,
-  apiEventRegistration,
   apiFeedbackComment,
   apiGetEventByCategoryName,
   apiGetEventById,
@@ -328,39 +327,35 @@ const DetailEvent = () => {
             <div className="col-lg-8 m-auto">
               <div className="bd-text">
                 <div className="bd-title">
-                  <p>
-                    Postcards are also viable ways to generate increased contact
-                    for your business but because business cards are handier and
-                    easier to fit into a wallet or a business file organizer,
-                    they are more certain to be carried anywhere and anytime.
-                  </p>
-                  <p>
-                    Postcards are also viable ways to generate increased contact
-                    for your business but because business cards are handier and
-                    easier to fit into a wallet or a business file organizer,
-                    they are more certain to be carried anywhere and anytime.
-                    Moreover, what is printed on the card is as important as to
-                    how the information is printed. A business card should have
-                    the name and the logo of the company.
-                  </p>
+                  <h3>{detailEvent?.title}</h3>
+                  <p>{detailEvent?.description || "No description available."}</p>
+                  <ul>
+                    <li><strong>Location:</strong> {detailEvent?.location || "N/A"}</li>
+                    <li><strong>Date:</strong> {detailEvent?.date || "N/A"}</li>
+                    <li><strong>Time:</strong> {detailEvent?.time || "N/A"}</li>
+                    <li><strong>Capacity:</strong> {detailEvent?.attendees?.length || 0} / {detailEvent?.capacity || "N/A"}</li>
+                  </ul>
                 </div>
                 <div className="bd-more-pic">
                   <div className="row">
-                    <div className="col-md-6">
-                      <img src="img/blog/blog-details/blog-more-1.jpg" alt="" />
-                    </div>
-                    <div className="col-md-6">
-                      <img src="img/blog/blog-details/blog-more-2.jpg" alt="" />
-                    </div>
+                    {detailEvent?.logoImage && (
+                      <div className="col-md-6">
+                        <img src={detailEvent.logoImage} alt="Event Logo" />
+                      </div>
+                    )}
+                    {detailEvent?.backgroundImage && (
+                      <div className="col-md-6">
+                        <img src={detailEvent.backgroundImage} alt="Event Background" />
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="bd-tag-share">
                   <div className="tag">
                     <button
-                      href="#"
                       className="btn btn-danger text-decoration-none"
                       onClick={() => handleRegisEvent(detailEvent?._id)}
-                      disabled={loading} // Vô hiệu hóa nút khi đang loading
+                      disabled={loading}
                     >
                       {loading ? (
                         <Audio
@@ -369,18 +364,13 @@ const DetailEvent = () => {
                           radius="4"
                           color="white"
                           ariaLabel="loading"
-                          wrapperStyle={{
-                            display: "inline-block",
-                            marginRight: "5px",
-                          }}
+                          wrapperStyle={{ display: "inline-block", marginRight: "5px" }}
                         />
                       ) : null}
-                      {loading ? "ĐANG XỬ LÝ..." : "EVENT REGISTATION"}
+                      {loading ? "ĐANG XỬ LÝ..." : "EVENT REGISTRATION"}
                     </button>
                   </div>
 
-                  {/* Comment Section */}
-                  {/* Comment Section */}
                   {isLogged && accessToken ? (
                     <div className="comment-section mt-4 p-4 bg-light rounded shadow-sm mx-3">
                       <h4 className="mb-3">Comments</h4>
@@ -416,68 +406,48 @@ const DetailEvent = () => {
                             key={index}
                             className="p-3 mb-2 bg-white rounded shadow-sm position-relative"
                           >
-                            {/* Use Flexbox to align content and push the menu to the right */}
                             <div className="d-flex justify-content-between align-items-start">
                               <div className="flex-grow-1">
                                 <small className="text-secondary d-block mt-1">
                                   {item?.updatedAt
-                                    ? `Đã chỉnh sửa vào ${new Date(
-                                        item.updatedAt
-                                      ).toLocaleString()}`
-                                    : `Đã đăng vào ${new Date(
-                                        item.createdAt
-                                      ).toLocaleString()}`}
+                                    ? `Đã chỉnh sửa vào ${new Date(item.updatedAt).toLocaleString()}`
+                                    : `Đã đăng vào ${new Date(item.createdAt).toLocaleString()}`}
                                 </small>
                                 <strong>{item?.userId?.name}</strong>
                                 {editingFeedbackId === item._id ? (
-                                  // Show input field when editing
                                   <div className="mt-2">
                                     <textarea
                                       className="form-control"
                                       rows="2"
                                       value={editText}
-                                      onChange={(e) =>
-                                        setEditText(e.target.value)
-                                      }
+                                      onChange={(e) => setEditText(e.target.value)}
                                       placeholder="Edit your comment..."
                                     />
                                   </div>
                                 ) : (
-                                  // Show static comment text when not editing
                                   <div>
-                                    <p className="mb-0 text-muted">
-                                      {item?.feedbackComment}
-                                    </p>
+                                    <p className="mb-0 text-muted">{item?.feedbackComment}</p>
                                   </div>
                                 )}
                               </div>
-
-                              {/* Menu Dropdown */}
                               {user?._id === item?.userId?._id && (
                                 <div className="position-relative">
                                   <CiMenuKebab
                                     size={20}
                                     className="cursor-pointer"
                                     onClick={() =>
-                                      setActiveMenu(
-                                        activeMenu === index ? null : index
-                                      )
+                                      setActiveMenu(activeMenu === index ? null : index)
                                     }
                                   />
                                   {activeMenu === index && (
                                     <div
                                       className="position-absolute bg-white shadow rounded p-2"
-                                      style={{
-                                        right: 0,
-                                        top: "-20%",
-                                      }}
+                                      style={{ right: 0, top: "-20%" }}
                                     >
                                       {editingFeedbackId === item._id ? (
                                         <button
                                           className="btn btn-sm btn-success w-100"
-                                          onClick={() =>
-                                            handleUpdateFeedback(item._id)
-                                          }
+                                          onClick={() => handleUpdateFeedback(item._id)}
                                         >
                                           Save
                                         </button>
@@ -495,9 +465,7 @@ const DetailEvent = () => {
                                       )}
                                       <button
                                         className="btn btn-sm btn-danger w-100 mt-1"
-                                        onClick={() =>
-                                          handleDeleteFeedback(item._id)
-                                        }
+                                        onClick={() => handleDeleteFeedback(item._id)}
                                       >
                                         Delete
                                       </button>
@@ -506,29 +474,20 @@ const DetailEvent = () => {
                                 </div>
                               )}
                             </div>
-
-                            {/* Reply Button (Ẩn nếu đã có phản hồi) */}
-                            {roleAdmin === "Admin" &&
-                              item.replies.length === 0 && (
-                                <div className="d-flex justify-content-end mt-2">
-                                  <button
-                                    className={`btn btn-sm ${
-                                      replyingTo === index
-                                        ? "btn-outline-danger"
-                                        : "btn-outline-primary"
-                                    }`}
-                                    onClick={() =>
-                                      setReplyingTo(
-                                        replyingTo === index ? null : index
-                                      )
-                                    }
-                                  >
-                                    {replyingTo === index ? "Cancel" : "Reply"}
-                                  </button>
-                                </div>
-                              )}
-
-                            {/* Reply Input Box */}
+                            {roleAdmin === "Admin" && item.replies.length === 0 && (
+                              <div className="d-flex justify-content-end mt-2">
+                                <button
+                                  className={`btn btn-sm ${
+                                    replyingTo === index ? "btn-outline-danger" : "btn-outline-primary"
+                                  }`}
+                                  onClick={() =>
+                                    setReplyingTo(replyingTo === index ? null : index)
+                                  }
+                                >
+                                  {replyingTo === index ? "Cancel" : "Reply"}
+                                </button>
+                              </div>
+                            )}
                             {replyingTo === index && (
                               <div className="mt-2 d-flex align-items-center">
                                 <input
@@ -551,23 +510,14 @@ const DetailEvent = () => {
                                 </button>
                               </div>
                             )}
-
-                            {/* Hiển thị danh sách reply */}
                             {item.replies?.length > 0 && (
                               <ul className="mt-3 ps-3 border-start">
                                 {item.replies.map((reply, replyIndex) => (
                                   <li key={replyIndex} className="mt-2">
-                                    <strong className="text-primary">
-                                      {reply.adminId?.name}:
-                                    </strong>
-                                    <span className="ms-2">
-                                      {reply.replyComment}
-                                    </span>
+                                    <strong className="text-primary">{reply.adminId?.name}:</strong>
+                                    <span className="ms-2">{reply.replyComment}</span>
                                     <small className="text-secondary d-block mt-1">
-                                      Đã trả lời{" "}
-                                      {new Date(
-                                        reply.createdAt
-                                      ).toLocaleString()}
+                                      Đã trả lời {new Date(reply.createdAt).toLocaleString()}
                                     </small>
                                   </li>
                                 ))}
@@ -583,18 +533,10 @@ const DetailEvent = () => {
 
                   <div className="s-share">
                     <span>Share:</span>
-                    <a href="#">
-                      <i className="fa fa-facebook" />
-                    </a>
-                    <a href="#">
-                      <i className="fa fa-twitter" />
-                    </a>
-                    <a href="#">
-                      <i className="fa fa-google-plus" />
-                    </a>
-                    <a href="#">
-                      <i className="fa fa-instagram" />
-                    </a>
+                    <a href="#"><i className="fa fa-facebook" /></a>
+                    <a href="#"><i className="fa fa-twitter" /></a>
+                    <a href="#"><i className="fa fa-google-plus" /></a>
+                    <a href="#"><i className="fa fa-instagram" /></a>
                   </div>
                 </div>
               </div>

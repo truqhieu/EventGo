@@ -1,0 +1,37 @@
+Style the select dropdown .primary-btn.top-btn {
+    background-color: #fff;
+    /* White background */
+    color: #000;
+    /* Black text color */
+    border: 1px solid #ccc;
+    /* Light border */
+    padding: 8px 12px;
+    /* Padding around the dropdown */
+    font-size: 14px;
+    /* Set font size */
+    border-radius: 4px;
+    /* Rounded corners */
+    width: auto;
+    /* Auto width */
+}
+
+/* Style the options inside the dropdown */
+.primary-btn.top-btn option {
+    background-color: #fff;
+    /* White background for options */
+    color: #000;
+    /* Black text for options */
+}
+
+/* Add hover effect for options */
+.primary-btn.top-btn option:hover {
+    background-color: #f0f0f0;
+    /* Light gray background on hover */
+}
+
+.li-text a {
+    text-decoration: none;
+    /* Remove underline from links */
+    color: #007bff;
+    /* Link color */
+}

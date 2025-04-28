@@ -1,0 +1,100 @@
+/* About.css */
+
+/* Banner section */
+.about-banner {
+    background-color: #f4f4f4;
+    padding: 50px 0;
+    text-align: center;
+}
+
+.about-banner h1 {
+    font-size: 2.5rem;
+    color: #333;
+}
+
+.about-banner p {
+    font-size: 1.2rem;
+    color: #777;
+}
+
+/* Section Giới thiệu */
+.about-section {
+    padding: 50px 0;
+    text-align: center;
+}
+
+.about-section h2 {
+    font-size: 2rem;
+    color: #333;
+}
+
+.about-section p {
+    font-size: 1.1rem;
+    color: #555;
+}
+
+/* Timeline Section */
+.about-timeline {
+    background-color: #fff;
+    padding: 50px 0;
+}
+
+.about-timeline h2 {
+    font-size: 2rem;
+    color: #333;
+}
+
+.about-timeline ul {
+    list-style: none;
+    padding: 0;
+}
+
+.about-timeline li {
+    font-size: 1.2rem;
+    color: #555;
+    margin: 10px 0;
+}
+
+.about-timeline .year {
+    font-weight: bold;
+}
+
+/* Team Section */
+.about-team {
+    background-color: #f9f9f9;
+    padding: 50px 0;
+}
+
+.about-team h2 {
+    font-size: 2rem;
+    color: #333;
+    text-align: center;
+}
+
+.about-team .team-members {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.about-team .member {
+    text-align: center;
+}
+
+.about-team .member img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+.about-team .member h3 {
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.about-team .member p {
+    font-size: 1.1rem;
+    color: #777;
+}

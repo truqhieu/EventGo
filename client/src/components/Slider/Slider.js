@@ -2,7 +2,7 @@ import React from 'react';
 
 const Slider = () => {
   const backgroundImage = {
-    backgroundImage: 'url("https://codetheweb.blog/assets/img/posts/css-advanced-background-images/cover.jpg")',
+    backgroundImage: 'url("https://cdn.prod.website-files.com/6769617aecf082b10bb149ff/67763d8a2775bee07438e7a5_Events.png")',
     backgroundSize: 'cover',  // Optional: to ensure the image covers the entire section
     backgroundPosition: 'center',  // Optional: to center the image
   };
@@ -16,8 +16,8 @@ const Slider = () => {
               <div className="hero-text">
                 <span>5 to 9 May 2019, Mardavall Hotel, New York</span>
                 <h2>
-                  Change Your Mind
-                  <br /> To Become Success
+                  Improve Yourself
+                  <br /> To Become Success  
                 </h2>
                 <a href="#" className="primary-btn">
                   Register
@@ -25,7 +25,7 @@ const Slider = () => {
               </div>
             </div>
             <div className="col-lg-5">
-              <img src="http://127.0.0.1:5500/img/hero-right.png" alt="" />
+              <img src="" alt="" />
             </div>
           </div>
         </div>
