@@ -7,6 +7,7 @@ const TempRegisterSchema = new mongoose.Schema({
   password: { type: String, required: true },
   regisToken: { type: String, required: true },
   createdAt: { type: Date, default: Date.now() },
+  role: { type: String, enum: ["User", "Admin", "Staff"], default: "User" },
 },{
   timestamps:true
 });
