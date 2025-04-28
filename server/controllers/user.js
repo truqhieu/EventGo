@@ -10,7 +10,7 @@ const TempRegister = require("../models/tempoRegistation");
 const uniqid = require("uniqid");
 
 const createUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
   if (!name || !email || !password) {
     return res.status(409).json({
       success: false,
@@ -38,6 +38,7 @@ const createUser = asyncHandler(async (req, res) => {
     address: "",
     password: password,
     regisToken: regisToken,
+    role: role || "User",
   };
 
   const existedEmailTemp = await TempRegister.findOne({ email: email });
@@ -130,6 +131,7 @@ const finalRegister = asyncHandler(async (req, res) => {
     name: infoUser?.name,
     email: infoUser?.email,
     password: infoUser?.password,
+    role: infoUser?.role || "User",
   });
 
   await TempRegister.deleteOne({

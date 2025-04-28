@@ -14,7 +14,7 @@ import UpdateEvent from "../event/UpdateEvent";
 import Dashboard from "../dashboard/Dashboard";
 import { useNavigate } from "react-router-dom";
 
-const Admin = () => {
+const Staff = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -248,4 +248,4 @@ const Admin = () => {
   );
 };
 
-export default Admin;
+export default Staff;

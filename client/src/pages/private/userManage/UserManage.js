@@ -190,7 +190,7 @@ const UserManage = () => {
                                     onChange={handleChangeUpdate}
                                 >
                                     <option value="User">User</option>
-                                    <option value="Admin">Admin</option>
+                                    <option value="Staff">Staff</option>
                                 </select>
                             </div>
                             <div className="col-md-6 mb-3">
