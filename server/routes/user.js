@@ -15,7 +15,7 @@ router.get('/:id', ctrls.getUserById); // Lấy thông tin user theo ID
 router.put('/:id', ctrls.updateUser); // Cập nhật user
 router.delete('/:id', ctrls.deleteUser); // Xóa user
 
-
 router.post("/assign-event",  ctrls.assignEventToStaff);
+router.post('/remove-assigned-event', ctrls.removeAssignedEvent);
 
 module.exports = router

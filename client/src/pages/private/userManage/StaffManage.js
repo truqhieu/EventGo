@@ -1,4 +1,3 @@
-// client/src/pages/admin/userManage/StaffManage.jsx
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useDispatch, useSelector } from "react-redux";
@@ -9,15 +8,15 @@ import {
     apiDeleteUser,
     apiGetUserById,
     apiUpdateUser,
+    apiRemoveAssignedEvent,
     apiAssignEventToStaff,
 } from "../../../apis/user/user";
 import { toast } from "react-toastify";
+import { Modal, Button } from "react-bootstrap";
 
 const StaffManage = () => {
     const dispatch = useDispatch();
-    const { userAll, loadingUserAll, errorUserAll } = useSelector(
-        (state) => state.user
-    );
+    const { userAll } = useSelector((state) => state.user);
     const { eventAll } = useSelector((state) => state.event);
 
     const [showModal, setShowModal] = useState(false);
@@ -26,6 +25,8 @@ const StaffManage = () => {
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [selectedStaffId, setSelectedStaffId] = useState(null);
     const [selectedEventId, setSelectedEventId] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sortOrder, setSortOrder] = useState("newest");
 
     const [formAdd, setFormAdd] = useState({
         name: "",
@@ -46,10 +47,6 @@ const StaffManage = () => {
         profileImage: "",
     });
 
-    // State cho tìm kiếm, lọc và sắp xếp
-    const [searchQuery, setSearchQuery] = useState("");
-    const [sortOrder, setSortOrder] = useState("newest");
-
     useEffect(() => {
         dispatch(fetchAllUsers());
         dispatch(fetchAllEvent());
@@ -69,7 +66,7 @@ const StaffManage = () => {
             const response = await apiAssignEventToStaff(selectedStaffId, selectedEventId);
             if (response?.data?.success) {
                 toast.success("Event assigned successfully!");
-                await dispatch(fetchAllUsers()); // Đảm bảo fetchAllUsers hoàn tất trước khi đóng modal
+                await dispatch(fetchAllUsers());
                 setShowAssignModal(false);
                 setSelectedEventId("");
             }
@@ -78,8 +75,18 @@ const StaffManage = () => {
         }
     };
 
-    const handleModalToggle = () => {
-        setShowModal(!showModal);
+    const handleRemoveEvent = async (staffId, eventId) => {
+        if (window.confirm("Are you sure you want to remove this event from the staff?")) {
+            try {
+                const response = await apiRemoveAssignedEvent(staffId, eventId);
+                if (response?.data?.success) {
+                    toast.success("Event removed successfully!");
+                    await dispatch(fetchAllUsers());
+                }
+            } catch (error) {
+                toast.error(error.response?.data?.mess || "Failed to remove event");
+            }
+        }
     };
 
     const handleInputAdd = (e) => {
@@ -159,7 +166,6 @@ const StaffManage = () => {
         }
     };
 
-    // Lọc và xử lý danh sách staff
     const filteredStaff = userAll?.mess
         ?.filter((user) => user.role === "Staff")
         ?.filter((user) => {
@@ -177,113 +183,11 @@ const StaffManage = () => {
 
     return (
         <div>
-            <h3>Staff Management</h3>
+            <h3 className="mb-4">Staff Management</h3>
 
-            {/* Add Staff Modal */}
-            {showModal && (
-                <div className="modal fade show" tabIndex="-1" style={{ display: "block" }}>
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Add Staff</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowModal(false)}
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <form onSubmit={handleSubmitAdd}>
-                                    <div className="mb-3">
-                                        <label htmlFor="name" className="form-label">
-                                            Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="name"
-                                            value={formAdd.name}
-                                            onChange={handleInputAdd}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="email" className="form-label">
-                                            Email
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className="form-control"
-                                            name="email"
-                                            value={formAdd.email}
-                                            onChange={handleInputAdd}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="phone" className="form-label">
-                                            Phone (Optional)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="phone"
-                                            value={formAdd.phone}
-                                            onChange={handleInputAdd}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="address" className="form-label">
-                                            Address (Optional)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="address"
-                                            value={formAdd.address}
-                                            onChange={handleInputAdd}
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="password" className="form-label">
-                                            Password
-                                        </label>
-                                        <input
-                                            type="password"
-                                            className="form-control"
-                                            name="password"
-                                            value={formAdd.password}
-                                            onChange={handleInputAdd}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="mb-3">
-                                        <label htmlFor="role" className="form-label">
-                                            Role
-                                        </label>
-                                        <select
-                                            className="form-select"
-                                            name="role"
-                                            value={formAdd.role}
-                                            onChange={handleInputAdd}
-                                        >
-                                            <option value="Staff">Staff</option>
-                                        </select>
-                                    </div>
-                                    <button type="submit" className="btn btn-primary">
-                                        Save Staff
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Update Staff Form */}
-            {isUpdateUser && (
-                <div className="container mt-5" style={{ width: "85%" }}>
-                    <h3 className="text-start mb-4">Update Staff</h3>
+            {isUpdateUser ? (
+                <div className="card p-4">
+                    <h4 className="mb-4">Update Staff</h4>
                     <form onSubmit={handleSubmitUpdate}>
                         <div className="row">
                             <div className="col-md-6 mb-3">
@@ -309,9 +213,7 @@ const StaffManage = () => {
                                 />
                             </div>
                             <div className="col-md-6 mb-3">
-                                <label className="form-label">
-                                    Password (Leave blank to keep unchanged)
-                                </label>
+                                <label className="form-label">Password (Leave blank to keep unchanged)</label>
                                 <input
                                     type="password"
                                     className="form-control"
@@ -351,64 +253,24 @@ const StaffManage = () => {
                                     onChange={handleChangeUpdate}
                                 />
                             </div>
-                            <div className="col-12 text-end mt-3">
-                                <button type="submit" className="btn btn-success">
+                            <div className="col-12 d-flex gap-2 justify-content-end mt-3">
+                                <Button variant="success" type="submit">
                                     Update Staff
-                                </button>
+                                </Button>
+                                <Button variant="secondary" onClick={() => setIsUpdateUser(false)}>
+                                    Cancel
+                                </Button>
                             </div>
                         </div>
                     </form>
                 </div>
-            )}
-
-            {/* Assign Event Modal */}
-            {showAssignModal && (
-                <div className="modal fade show" tabIndex="-1" style={{ display: "block" }}>
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Assign Event to Staff</h5>
-                                <button
-                                    type="button"
-                                    className="btn-close"
-                                    onClick={() => setShowAssignModal(false)}
-                                ></button>
-                            </div>
-                            <div className="modal-body">
-                                <div className="mb-3">
-                                    <label htmlFor="event" className="form-label">
-                                        Select Event
-                                    </label>
-                                    <select
-                                        className="form-select"
-                                        value={selectedEventId}
-                                        onChange={(e) => setSelectedEventId(e.target.value)}
-                                    >
-                                        <option value="">-- Select an event --</option>
-                                        {eventAll?.mess?.map((event) => (
-                                            <option key={event._id} value={event._id}>
-                                                {event.title} ({new Date(event.date).toDateString()})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <button className="btn btn-primary" onClick={handleAssignEvent}>
-                                    Assign Event
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Staff List */}
-            {!isUpdateUser && (
+            ) : (
                 <div>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <button className="btn btn-primary" onClick={handleModalToggle}>
+                    <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                        <Button variant="primary" onClick={() => setShowModal(true)}>
                             Add Staff
-                        </button>
-                        <div className="d-flex gap-2">
+                        </Button>
+                        <div className="d-flex gap-3 flex-wrap">
                             <input
                                 type="text"
                                 className="form-control"
@@ -417,7 +279,6 @@ const StaffManage = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 style={{ width: "200px" }}
                             />
-
                             <select
                                 className="form-select"
                                 value={sortOrder}
@@ -429,78 +290,220 @@ const StaffManage = () => {
                             </select>
                         </div>
                     </div>
-                    <p>Showing {filteredStaff.length} staff(s) with role "Staff"</p>
-                    <table className="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Phone</th>
-                                <th>Address</th>
-                                <th>Created At</th>
-                                <th>Sự kiện được giao</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredStaff.length > 0 ? (
-                                filteredStaff.map((user, index) => (
-                                    <tr key={index}>
-                                        <td>{user.name}</td>
-                                        <td>{user.email}</td>
-                                        <td>{user.role}</td>
-                                        <td>{user.phone || "N/A"}</td>
-                                        <td>{user.address || "N/A"}</td>
-                                        <td>{new Date(user.createdAt).toDateString()}</td>
-                                        <td>
-                                            {user.assignedEvents && user.assignedEvents.length > 0 ? (
-                                                <ul>
-                                                    {user.assignedEvents.map((eventEntry, idx) => (
-                                                        <li key={idx}>
-                                                            {eventEntry.event?.title || "Unknown Event"}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            ) : (
-                                                "No events assigned"
-                                            )}
-                                        </td>
-                                        <td>
-                                            <div className="d-flex gap-2">
-                                                <button
-                                                    className="btn btn-primary btn-sm"
-                                                    onClick={() => handleOpenUpdateUser(user._id)}
-                                                >
-                                                    Update
-                                                </button>
-                                                <button
-                                                    className="btn btn-danger btn-sm"
-                                                    onClick={() => handleDeleteUser(user._id)}
-                                                >
-                                                    Delete
-                                                </button>
-                                                <button
-                                                    className="btn btn-success btn-sm"
-                                                    onClick={() => handleOpenAssignModal(user._id)}
-                                                >
-                                                    Assign Event
-                                                </button>
-                                            </div>
-                                        </td>
+                    <p className="mb-3">Showing {filteredStaff.length} staff(s) with role "Staff"</p>
+                    <div className="card">
+                        <div className="card-body p-0">
+                            <table className="table table-striped table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Phone</th>
+                                        <th>Address</th>
+                                        <th>Created At</th>
+                                        <th>Assigned Events</th>
+                                        <th>Action</th>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="8" className="text-center text-muted">
-                                        No staff found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    {filteredStaff.length > 0 ? (
+                                        filteredStaff.map((user, index) => (
+                                            <tr key={index}>
+                                                <td>{user.name}</td>
+                                                <td>{user.email}</td>
+                                                <td>{user.role}</td>
+                                                <td>{user.phone || "N/A"}</td>
+                                                <td>{user.address || "N/A"}</td>
+                                                <td>{new Date(user.createdAt).toDateString()}</td>
+                                                <td>
+                                                    {user.assignedEvents && user.assignedEvents.length > 0 ? (
+                                                        <ul className="mb-0">
+                                                            {user.assignedEvents.map((eventEntry, idx) => (
+                                                                <li key={idx} className="d-flex justify-content-between align-items-center"
+                                                                    style={{ marginBottom: "5px" }}>
+                                                                    <span>{eventEntry.event?.title || "Unknown Event"}</span>
+                                                                    <Button
+                                                                        variant="danger"
+                                                                        size="sm"
+                                                                        onClick={() => handleRemoveEvent(user._id, eventEntry.event?._id)}
+                                                                    >
+                                                                        Remove
+                                                                    </Button>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    ) : (
+                                                        "No events assigned"
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <div className="d-flex gap-2">
+                                                        <Button
+                                                            variant="primary"
+                                                            size="sm"
+                                                            onClick={() => handleOpenUpdateUser(user._id)}
+                                                        >
+                                                            Update
+                                                        </Button>
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            onClick={() => handleDeleteUser(user._id)}
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                        <Button
+                                                            variant="success"
+                                                            size="sm"
+                                                            onClick={() => handleOpenAssignModal(user._id)}
+                                                        >
+                                                            Assign Event
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="8" className="text-center text-muted">
+                                                No staff found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
+
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Staff</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <form onSubmit={handleSubmitAdd}>
+                        <div className="mb-3">
+                            <label htmlFor="name" className="form-label">
+                                Name
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="name"
+                                value={formAdd.name}
+                                onChange={handleInputAdd}
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="email" className="form-label">
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                className="form-control"
+                                name="email"
+                                value={formAdd.email}
+                                onChange={handleInputAdd}
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="phone" className="form-label">
+                                Phone (Optional)
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="phone"
+                                value={formAdd.phone}
+                                onChange={handleInputAdd}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="address" className="form-label">
+                                Address (Optional)
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="address"
+                                value={formAdd.address}
+                                onChange={handleInputAdd}
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="password" className="form-label">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                className="form-control"
+                                name="password"
+                                value={formAdd.password}
+                                onChange={handleInputAdd}
+                                required
+                            />
+                        </div>
+                        <div className="mb-3">
+                            <label htmlFor="role" className="form-label">
+                                Role
+                            </label>
+                            <select
+                                className="form-select"
+                                name="role"
+                                value={formAdd.role}
+                                onChange={handleInputAdd}
+                            >
+                                <option value="Staff">Staff</option>
+                            </select>
+                        </div>
+                        <div className="d-flex gap-2">
+                            <Button type="submit" variant="primary">
+                                Save Staff
+                            </Button>
+                            <Button variant="secondary" onClick={() => setShowModal(false)}>
+                                Cancel
+                            </Button>
+                        </div>
+                    </form>
+                </Modal.Body>
+            </Modal>
+
+            <Modal show={showAssignModal} onHide={() => setShowAssignModal(false)}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Assign Event to Staff</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="mb-3">
+                        <label htmlFor="event" className="form-label">
+                            Select Event
+                        </label>
+                        <select
+                            className="form-select"
+                            value={selectedEventId}
+                            onChange={(e) => setSelectedEventId(e.target.value)}
+                        >
+                            <option value="">-- Select an event --</option>
+                            {eventAll?.mess?.map((event) => (
+                                <option key={event._id} value={event._id}>
+                                    {event.title} ({new Date(event.date).toDateString()})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="d-flex gap-2">
+                        <Button variant="primary" onClick={handleAssignEvent}>
+                            Assign Event
+                        </Button>
+                        <Button variant="secondary" onClick={() => setShowAssignModal(false)}>
+                            Cancel
+                        </Button>
+                    </div>
+                </Modal.Body>
+            </Modal>
         </div>
     );
 };
