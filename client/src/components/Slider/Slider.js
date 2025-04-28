@@ -17,7 +17,7 @@ const Slider = () => {
                 <span>5 to 9 May 2019, Mardavall Hotel, New York</span>
                 <h2>
                   Improve Yourself
-                  <br /> To Become Success  
+                  <br /> To Become Perfect  
                 </h2>
                 <a href="#" className="primary-btn">
                   Register
