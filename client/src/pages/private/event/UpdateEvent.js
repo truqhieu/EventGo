@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { toast } from "react-toastify";
 import {
     apiCreateEvent,
@@ -14,10 +14,12 @@ import { fetchAllEvent } from '../../../reducer/eventReducer';
 
 const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEvent }) => {
     const dispatch = useDispatch();
-    const { isLoading, error, dataSpeakerAll } = useSelector((state) => state.speakerList);
+    const { isLoading: isSpeakerLoading, error: speakerError, dataSpeakerAll } = useSelector((state) => state.speakerList);
 
     const [updateImageLogo, setUpdateImageLogo] = useState(null);
     const [updateImageBackground, setUpdateImageBackground] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const statusEvent = ["Upcoming", "Ongoing", "Completed", "Cancelled"];
     const categoriesEvent = [
@@ -30,6 +32,34 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
         "Entertainment",
         "Cuisine",
     ];
+
+    // Gọi API để lấy dữ liệu sự kiện khi component mount
+    useEffect(() => {
+        const fetchEventData = async () => {
+            if (!idUpdateEvent) {
+                toast.error("Event ID is missing");
+                return;
+            }
+
+            setIsLoading(true);
+            try {
+                const response = await apiGetEventById(idUpdateEvent);
+                if (response?.success) {
+                    setInitialUpd(response.data); // Cập nhật initialUpd với dữ liệu từ API
+                } else {
+                    setError(response?.message || "Failed to fetch event data");
+                    toast.error(response?.message || "Failed to fetch event data");
+                }
+            } catch (err) {
+                setError(err.message || "Error fetching event data");
+                toast.error("Error fetching event data");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchEventData();
+    }, [idUpdateEvent, setInitialUpd]);
 
     const handleSubmitUpdate = async (e) => {
         e.preventDefault();
@@ -173,6 +203,15 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
         });
     };
 
+    // Hiển thị trạng thái loading hoặc lỗi
+    if (isLoading) {
+        return <div className="text-center mt-5">Đang tải dữ liệu sự kiện...</div>;
+    }
+
+    if (error) {
+        return <div className="text-center text-danger mt-5">Lỗi: {error}</div>;
+    }
+
     return (
         <div className="container mt-5" style={{ width: "85%" }}>
             <h3 className="text-start text-update mb-4">Update Event</h3>
@@ -182,7 +221,7 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                         <label className="form-label">Title</label>
                         <input
                             type="text"
-                            value={initialUpd?.title}
+                            value={initialUpd?.title || ""}
                             className="form-control"
                             onChange={handleChangeUpdate}
                             name="title"
@@ -198,7 +237,7 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                             onChange={handleChangeUpdate}
                             value={
                                 initialUpd?.date
-                                    ? new Date(initialUpd.date).toLocaleDateString("en-CA")
+                                    ? new Date(initialUpd.date).toISOString().split("T")[0]
                                     : ""
                             }
                             required
@@ -213,16 +252,17 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                             onChange={handleChangeUpdate}
                             value={
                                 initialUpd?.endDate
-                                    ? new Date(initialUpd.endDate).toLocaleDateString("en-CA")
+                                    ? new Date(initialUpd.endDate).toISOString().split("T")[0]
                                     : ""
                             }
+                            required
                         />
                     </div>
                     <div className="col-md-6 mb-3">
                         <label className="form-label">Location</label>
                         <input
                             type="text"
-                            value={initialUpd?.location}
+                            value={initialUpd?.location || ""}
                             onChange={handleChangeUpdate}
                             className="form-control"
                             name="location"
@@ -273,7 +313,7 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                         <label className="form-label">Capacity</label>
                         <input
                             type="number"
-                            value={initialUpd?.capacity}
+                            value={initialUpd?.capacity || ""}
                             onChange={handleChangeUpdate}
                             className="form-control"
                             name="capacity"
@@ -285,11 +325,12 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                             Category
                         </label>
                         <select
-                            value={initialUpd?.category}
+                            value={initialUpd?.category || ""}
                             name="category"
                             onChange={handleChangeUpdate}
                             className="form-select"
                         >
+                            <option value="">Chọn danh mục</option>
                             {categoriesEvent?.map((item, index) => (
                                 <option value={item} key={index}>
                                     {item}
@@ -304,11 +345,14 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                         <select
                             name="speaker"
                             value={
-                                initialUpd?.speaker?.length > 0 ? initialUpd.speaker[0]?._id : ""
+                                Array.isArray(initialUpd?.speaker) && initialUpd.speaker.length > 0
+                                    ? initialUpd.speaker[0]?._id || ""
+                                    : initialUpd?.speaker?._id || ""
                             }
                             className="form-select"
                             onChange={handleChangeUpdate}
                         >
+                            <option value="">Chọn diễn giả</option>
                             {dataSpeakerAll?.map((item, index) => (
                                 <option key={index} value={item?._id}>
                                     {item?.name}
@@ -320,10 +364,11 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                         <label className="form-label">Event Status</label>
                         <select
                             className="form-select"
-                            value={initialUpd?.status}
+                            value={initialUpd?.status || ""}
                             onChange={handleChangeUpdate}
                             name="status"
                         >
+                            <option value="">Chọn trạng thái</option>
                             {statusEvent?.map((item, index) => (
                                 <option value={item} key={index}>
                                     {item}
@@ -381,6 +426,13 @@ const UpdateEvent = ({ idUpdateEvent, initialUpd, setInitialUpd, setIsUpdateEven
                     <div className="col-12 text-end mt-3">
                         <button type="submit" className="btn btn-success">
                             Update Event
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-secondary ms-2"
+                            onClick={() => setIsUpdateEvent(false)}
+                        >
+                            Cancel
                         </button>
                     </div>
                 </div>

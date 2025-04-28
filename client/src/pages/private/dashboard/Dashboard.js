@@ -1,24 +1,31 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend } from "chart.js";
 import { Pie, Bar } from "react-chartjs-2";
 import "../admin/Admin.css";
 import { fetchAllUsers } from "../../../reducer/userReducer";
-import { useDispatch } from "react-redux";
+import { fetchAllEvent } from "../../../reducer/eventReducer";
+import { Modal, Button } from "react-bootstrap";
 
 // Register Chart.js components
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Title, Tooltip, Legend);
 
 const Dashboard = () => {
-
     const dispatch = useDispatch();
-    useEffect(() => {
-        dispatch(fetchAllUsers());
-    }, [dispatch]);
-
     const { eventAll } = useSelector((state) => state.event);
     const { userAll } = useSelector((state) => state.user);
+
+    // State để điều khiển modal
+    const [showEventListModal, setShowEventListModal] = useState(false);
+    const [showUserListModal, setShowUserListModal] = useState(false);
+    const [showStaffListModal, setShowStaffListModal] = useState(false);
+    const [showCancelledEventListModal, setShowCancelledEventListModal] = useState(false); // Modal mới cho Cancelled Events
+
+    useEffect(() => {
+        dispatch(fetchAllUsers());
+        dispatch(fetchAllEvent());
+    }, [dispatch]);
 
     // Calculate metrics
     const totalEvents = eventAll?.mess?.length || 0;
@@ -141,32 +148,57 @@ const Dashboard = () => {
 
             {/* Metric Cards */}
             <div className="row mb-4">
-                <div className="col-md-4 mb-3">
-                    <div className="card h-100">
+                <div className="col-md-3 mb-3">
+                    <div
+                        className="card h-100"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setShowEventListModal(true)}
+                    >
                         <div className="card-body text-center">
                             <h5 className="card-title">Total Events</h5>
                             <p className="card-text display-4">{totalEvents}</p>
                         </div>
                     </div>
                 </div>
-                <div className="col-md-4 mb-3">
-                    <div className="card h-100">
+                <div className="col-md-3 mb-3">
+                    <div
+                        className="card h-100"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setShowUserListModal(true)}
+                    >
                         <div className="card-body text-center">
                             <h5 className="card-title">Total Users</h5>
                             <p className="card-text display-4">{totalUsers}</p>
                         </div>
                     </div>
                 </div>
-                <div className="col-md-4 mb-3">
-                    <div className="card h-100">
+                <div className="col-md-3 mb-3">
+                    <div
+                        className="card h-100"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setShowStaffListModal(true)}
+                    >
                         <div className="card-body text-center">
                             <h5 className="card-title">Total Staff</h5>
                             <p className="card-text display-4">{totalStaff}</p>
                         </div>
                     </div>
                 </div>
+                <div className="col-md-3 mb-3">
+                    <div
+                        className="card h-100"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => setShowCancelledEventListModal(true)}
+                    >
+                        <div className="card-body text-center">
+                            <h5 className="card-title">Event Cancelled</h5>
+                            <p className="card-text display-4">{eventStatusBreakdown.Cancelled}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            {/* Event Status and Attendee Status Section */}
             <div className="row mb-4">
                 <div className="col-md-6 mb-3">
                     <div className="card h-100">
@@ -182,9 +214,9 @@ const Dashboard = () => {
                                 <li className="list-group-item d-flex justify-content-between align-items-center">
                                     Completed <span className="badge bg-success">{eventStatusBreakdown.Completed}</span>
                                 </li>
-                                <li className="list-group-item d-flex justify-content-between align-items-center">
+                                {/* <li className="list-group-item d-flex justify-content-between align-items-center">
                                     Cancelled <span className="badge bg-danger">{eventStatusBreakdown.Cancelled}</span>
-                                </li>
+                                </li> */}
                             </ul>
                         </div>
                     </div>
@@ -227,6 +259,172 @@ const Dashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal for Event List */}
+            <Modal show={showEventListModal} onHide={() => setShowEventListModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Danh sách sự kiện</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {eventAll?.mess?.length > 0 ? (
+                        <table className="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Attendees</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {eventAll.mess.map((event, index) => (
+                                    <tr key={index}>
+                                        <td>{event.title}</td>
+                                        <td>{new Date(event.date).toLocaleDateString()}</td>
+                                        <td>{event.category || "N/A"}</td>
+                                        <td>{event.status || "N/A"}</td>
+                                        <td>{event.attendees?.length || 0}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="text-center text-muted">Không có sự kiện nào.</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowEventListModal(false)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Modal for User List */}
+            <Modal show={showUserListModal} onHide={() => setShowUserListModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Danh sách người dùng</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {userAll?.mess?.filter((user) => user.role === "User").length > 0 ? (
+                        <table className="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Address</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {userAll.mess
+                                    .filter((user) => user.role === "User")
+                                    .map((user, index) => (
+                                        <tr key={index}>
+                                            <td>{user.name}</td>
+                                            <td>{user.email}</td>
+                                            <td>{user.phone || "N/A"}</td>
+                                            <td>{user.address || "N/A"}</td>
+                                            <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="text-center text-muted">Không có người dùng nào.</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowUserListModal(false)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Modal for Staff List */}
+            <Modal show={showStaffListModal} onHide={() => setShowStaffListModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Danh sách nhân viên</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {userAll?.mess?.filter((user) => user.role === "Staff").length > 0 ? (
+                        <table className="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Address</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {userAll.mess
+                                    .filter((user) => user.role === "Staff")
+                                    .map((staff, index) => (
+                                        <tr key={index}>
+                                            <td>{staff.name}</td>
+                                            <td>{staff.email}</td>
+                                            <td>{staff.phone || "N/A"}</td>
+                                            <td>{staff.address || "N/A"}</td>
+                                            <td>{new Date(staff.createdAt).toLocaleDateString()}</td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="text-center text-muted">Không có nhân viên nào.</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowStaffListModal(false)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Modal for Cancelled Event List */}
+            <Modal show={showCancelledEventListModal} onHide={() => setShowCancelledEventListModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Danh sách sự kiện bị hủy</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {eventAll?.mess?.filter((event) => event.status === "Cancelled").length > 0 ? (
+                        <table className="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Reason</th>
+                                    <th>Attendees</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {eventAll.mess
+                                    .filter((event) => event.status === "Cancelled")
+                                    .map((event, index) => (
+                                        <tr key={index}>
+                                            <td>{event.title}</td>
+                                            <td>{new Date(event.date).toLocaleDateString()}</td>
+                                            <td>{event.category || "N/A"}</td>
+                                            <td>{event.cancelReason || "N/A"}</td>
+                                            <td>{event.attendees?.length || 0}</td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="text-center text-muted">Không có sự kiện bị hủy nào.</p>
+                    )}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowCancelledEventListModal(false)}>
+                        Đóng
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 };
